@@ -1,0 +1,351 @@
+---
+title: 'Step CLI'
+description: 'Certificate management and crypto toolkit for secure infrastructure'
+icon: 'certificate'
+---
+
+Step CLI is a powerful command-line tool for certificate management, encryption, and secure infrastructure operations. It provides an easy-to-use interface for working with X.509 certificates, JWTs, and other cryptographic operations.
+
+## Features
+
+- **Certificate Management**: Create, inspect, and validate X.509 certificates
+- **JWT Operations**: Create, verify, and inspect JSON Web Tokens
+- **Encryption**: Encrypt and decrypt files and data
+- **SSH Certificates**: Manage SSH certificates and keys
+- **ACME Protocol**: Automated certificate provisioning
+- **OAuth/OIDC**: Token exchange and verification
+
+## Installation
+
+The dotfiles include automated installation for Step CLI on both macOS and Linux.
+
+<CodeGroup>
+
+```bash macOS
+# Via Homebrew (handled by bootstrap.sh)
+brew install step
+```
+
+```bash Ubuntu/Debian
+# Via APT package (handled by installation script)
+curl -LO https://dl.smallstep.com/gh-release/cli/docs-ca-install/v{version}/step-cli_{version}-1_amd64.deb
+sudo dpkg -i step-cli_{version}-1_amd64.deb
+```
+
+```bash Fedora/RHEL
+# Via RPM package (handled by installation script)
+curl -LO https://dl.smallstep.com/gh-release/cli/docs-ca-install/v{version}/step-cli-{version}-1.x86_64.rpm
+sudo dnf install step-cli-{version}-1.x86_64.rpm
+```
+
+</CodeGroup>
+
+### Automated Installation
+
+```bash
+# Via bootstrap script
+./bootstrap.sh
+
+# Or manually
+zsh scripts/step.zsh install
+```
+
+<Note>
+The installation script automatically detects your platform (macOS or Linux), architecture (x86_64 or aarch64), and package manager (dpkg or dnf) to install the appropriate version.
+</Note>
+
+## Basic Usage
+
+### Certificate Inspection
+
+View details of X.509 certificates:
+
+```bash
+# Inspect a certificate file
+step certificate inspect cert.pem
+
+# Inspect a remote certificate
+step certificate inspect https://example.com
+
+# Show certificate chain
+step certificate inspect https://example.com --chain
+```
+
+### Certificate Creation
+
+Create self-signed certificates:
+
+```bash
+# Create a self-signed certificate
+step certificate create example.com cert.pem key.pem \
+  --profile self-signed \
+  --subtle
+
+# Create with specific validity period
+step certificate create example.com cert.pem key.pem \
+  --profile self-signed \
+  --not-after=8760h  # 1 year
+```
+
+### JWT Operations
+
+Work with JSON Web Tokens:
+
+```bash
+# Inspect a JWT
+step crypto jwt inspect token.jwt
+
+# Create a JWT
+step crypto jwt sign \
+  --key=key.pem \
+  --iss="issuer" \
+  --aud="audience" \
+  --sub="subject"
+
+# Verify a JWT
+step crypto jwt verify token.jwt \
+  --key=public.pem \
+  --iss="issuer"
+```
+
+### Encryption
+
+Encrypt and decrypt data:
+
+```bash
+# Encrypt a file
+step crypto nacl box seal \
+  secret.txt \
+  encrypted.bin \
+  public.key
+
+# Decrypt a file
+step crypto nacl box open \
+  encrypted.bin \
+  decrypted.txt \
+  private.key
+```
+
+## Zsh Configuration
+
+The dotfiles include Step CLI integration in the Zsh configuration:
+
+```bash .config/zsh.d/S21_step
+# Automatically load Step CA configuration if present
+if [ -f "$HOME/.step/config/defaults.json" ]; then
+  export STEPPATH="$HOME/.step"
+fi
+```
+
+This ensures your Step CA configuration is loaded automatically when you start a new shell session.
+
+## Common Use Cases
+
+### Development TLS Certificates
+
+Create certificates for local development:
+
+```bash
+# Create a root CA
+step certificate create "My Dev CA" \
+  ca.crt ca.key \
+  --profile root-ca
+
+# Create a certificate signed by your CA
+step certificate create localhost \
+  localhost.crt localhost.key \
+  --ca ca.crt \
+  --ca-key ca.key \
+  --profile leaf
+```
+
+### Certificate Verification
+
+Verify certificate validity and chains:
+
+```bash
+# Verify a certificate against a CA
+step certificate verify cert.pem \
+  --roots ca.crt
+
+# Check certificate expiration
+step certificate inspect cert.pem \
+  --format json | jq '.validity.end'
+```
+
+### SSH Certificate Management
+
+Work with SSH certificates:
+
+```bash
+# Create an SSH certificate
+step ssh certificate user@example.com id_ecdsa.pub \
+  --sign \
+  --provisioner admin
+
+# Inspect SSH certificate
+step ssh inspect id_ecdsa-cert.pub
+```
+
+## Upgrading
+
+Keep Step CLI up to date with the latest security fixes and features.
+
+### Via Bootstrap Script
+
+```bash
+# Update all tools including Step
+./bootstrap.sh --upgrade
+
+# Update only Step
+./bootstrap.sh --upgrade step
+```
+
+### Manual Upgrade
+
+```bash
+# Upgrade Step CLI
+zsh scripts/step.zsh upgrade
+```
+
+<Info>
+On macOS, upgrades are handled by Homebrew. On Linux, the script checks GitHub releases for the latest version and installs it automatically.
+</Info>
+
+### Version Check
+
+The upgrade script compares your installed version with the latest release:
+
+```bash
+# Check current version
+step version
+
+# Output format: "Smallstep CLI/0.25.0"
+```
+
+## Configuration
+
+Step CLI stores its configuration in `~/.step/`:
+
+```bash
+~/.step/
+├── config/
+│   └── defaults.json    # Default configuration
+├── certs/               # Trusted certificates
+└── secrets/             # Private keys
+```
+
+### Default Configuration
+
+Create a `~/.step/config/defaults.json` file:
+
+```json
+{
+  "ca-url": "https://ca.example.com",
+  "ca-config": "/path/to/ca.json",
+  "fingerprint": "abc123...",
+  "root": "/path/to/root_ca.crt"
+}
+```
+
+## Advanced Features
+
+### ACME Protocol
+
+Automate certificate provisioning with ACME:
+
+```bash
+# Bootstrap ACME server
+step ca bootstrap \
+  --ca-url https://ca.example.com \
+  --fingerprint abc123...
+
+# Get a certificate via ACME
+step ca certificate example.com \
+  cert.pem key.pem
+```
+
+### OAuth/OIDC Tokens
+
+Exchange and verify OAuth tokens:
+
+```bash
+# Get an OAuth token
+step oauth \
+  --provider google \
+  --client-id YOUR_CLIENT_ID \
+  --client-secret YOUR_SECRET
+
+# Verify an OIDC token
+step crypto jwt verify token.jwt \
+  --jwks https://example.com/.well-known/jwks.json
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Step command not found after installation">
+    Reload your shell configuration:
+    ```bash
+    source ~/.zshrc
+    ```
+    
+    Or verify the installation path:
+    ```bash
+    which step
+    # Should output: /usr/local/bin/step
+    ```
+  </Accordion>
+
+  <Accordion title="Certificate verification fails">
+    Ensure your root CA is properly configured:
+    ```bash
+    step certificate verify cert.pem --roots ca.crt --verbose
+    ```
+    
+    Check certificate validity period:
+    ```bash
+    step certificate inspect cert.pem
+    ```
+  </Accordion>
+
+  <Accordion title="Permission denied errors">
+    The installation script requires sudo for system-wide installation:
+    ```bash
+    sudo -v  # Verify sudo access
+    zsh scripts/step.zsh install
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Step CLI Documentation" icon="book" href="https://smallstep.com/docs/step-cli">
+    Official documentation and guides
+  </Card>
+  
+  <Card title="GitHub Repository" icon="github" href="https://github.com/smallstep/cli">
+    Source code and issue tracker
+  </Card>
+  
+  <Card title="Certificate Management" icon="certificate" href="https://smallstep.com/docs/step-cli/basic-crypto-operations">
+    Certificate operations guide
+  </Card>
+  
+  <Card title="JWT Operations" icon="key" href="https://smallstep.com/docs/step-cli/reference/crypto/jwt">
+    JWT command reference
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Tools Overview" icon="wrench" href="/tools/overview">
+    Explore other CLI tools in the dotfiles
+  </Card>
+  
+  <Card title="Installation Scripts" icon="code" href="/scripts/installation">
+    Learn about the installation script system
+  </Card>
+</CardGroup>

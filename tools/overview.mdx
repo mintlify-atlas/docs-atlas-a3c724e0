@@ -29,6 +29,14 @@ This dotfiles configuration includes a curated collection of modern CLI tools th
     Framework for managing Zsh configuration and plugins
   </Card>
   
+  <Card title="Step CLI" icon="certificate" href="/tools/step">
+    Certificate management and crypto toolkit
+  </Card>
+  
+  <Card title="yq" icon="file-code" href="/tools/yq">
+    Portable YAML, JSON, XML, and CSV processor
+  </Card>
+  
   <Card title="Zsh Plugins" icon="puzzle-piece" href="#zsh-plugins">
     Essential plugins for autosuggestions and syntax highlighting
   </Card>
@@ -227,16 +235,101 @@ zsh scripts/oh_my_zsh.zsh upgrade
 On macOS, upgrades are handled by Homebrew. On Linux, the scripts check GitHub releases for the latest versions and install them automatically.
 </Info>
 
-## Additional Features
+## Additional Tools
 
 ### LS_COLORS
 
-Custom color scheme for file listings:
+Enhanced color scheme for file listings from [trapd00r/LS_COLORS](https://github.com/trapd00r/LS_COLORS):
 
 ```bash
-# Loaded from
+# Installed to
 ${XDG_CONFIG_HOME}/lscolors/lscolors.sh
+
+# Loaded automatically in .zshrc
+. "${XDG_CONFIG_HOME}/lscolors/lscolors.sh"
 ```
+
+The LS_COLORS project provides a comprehensive color configuration for directories, symlinks, executables, archives, images, videos, and more. It's automatically installed and configured by the bootstrap script.
+
+### nanorc
+
+Syntax highlighting for nano editor from [scopatz/nanorc](https://github.com/scopatz/nanorc):
+
+```bash
+# Installed to
+~/.nano/
+
+# Provides syntax files for:
+# - Programming languages (Python, JavaScript, Go, etc.)
+# - Configuration files (YAML, JSON, INI, etc.)
+# - Markup languages (Markdown, HTML, XML, etc.)
+# - And many more
+```
+
+Enhances the nano editor experience with colorful syntax highlighting for numerous file types.
+
+### macOS-Specific Tools
+
+The following tools are installed only on macOS systems:
+
+#### kubectl
+
+Kubernetes command-line tool for cluster management:
+
+```bash
+# Installed via Homebrew
+brew install kubernetes-cli
+
+# Provides kubectl command for Kubernetes operations
+kubectl get pods
+kubectl apply -f deployment.yaml
+```
+
+#### kubectx
+
+Fast way to switch between Kubernetes contexts and namespaces:
+
+```bash
+# Installed via Homebrew
+brew install kubectx
+
+# Switch contexts quickly
+kubectx production
+kubectx staging
+
+# Switch namespaces
+kubens default
+kubens kube-system
+```
+
+The dotfiles include aliases for quick access:
+```bash
+alias kctx='kubectx'
+alias kns='kubens'
+```
+
+#### n
+
+Node.js version manager:
+
+```bash
+# Installed via Homebrew
+brew install n
+
+# Configured in .zshenv.local
+export N_PREFIX="$HOME/.config/n"
+export PATH="$HOME/.config/n/bin:$PATH"
+
+# Usage
+n latest          # Install latest Node.js version
+n lts             # Install latest LTS version
+n 18.17.0         # Install specific version
+n                 # Show installed versions and select
+```
+
+<Note>
+These tools are only installed on macOS because the bootstrap script detects the platform and conditionally adds them to the installation list. On Linux systems, Kubernetes tools are typically installed via the system package manager or cloud provider CLIs.
+</Note>
 
 ### Neofetch
 
@@ -277,5 +370,13 @@ autoload -U bashcompinit && bashcompinit
   
   <Card title="Learn Bat Features" icon="book" href="/tools/bat">
     Discover syntax highlighting and paging options
+  </Card>
+  
+  <Card title="Certificate Management" icon="certificate" href="/tools/step">
+    Use Step CLI for certificate operations
+  </Card>
+  
+  <Card title="Process YAML Files" icon="file-code" href="/tools/yq">
+    Learn yq for YAML/JSON manipulation
   </Card>
 </CardGroup>

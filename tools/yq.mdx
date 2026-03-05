@@ -1,0 +1,409 @@
+---
+title: 'yq'
+description: 'Portable command-line YAML, JSON, XML, and CSV processor'
+icon: 'file-code'
+---
+
+yq is a lightweight and portable command-line YAML, JSON, XML, and CSV processor. It uses jq-like syntax to query and manipulate structured data files, making it an essential tool for working with configuration files and data formats.
+
+## Features
+
+- **Multiple Format Support**: Process YAML, JSON, XML, and CSV files
+- **jq-Compatible Syntax**: If you know jq, you know yq
+- **In-Place Editing**: Modify files directly without manual copying
+- **Format Conversion**: Convert between YAML, JSON, XML, and CSV
+- **Merge Operations**: Combine multiple files with intelligent merging
+- **Cross-Platform**: Works on macOS, Linux, and Windows
+
+## Installation
+
+The dotfiles include automated installation for yq on both macOS and Linux.
+
+<CodeGroup>
+
+```bash macOS
+# Via Homebrew (handled by bootstrap.sh)
+brew install yq
+```
+
+```bash Linux
+# Via GitHub releases (handled by installation script)
+curl -LO https://github.com/mikefarah/yq/releases/download/{version}/yq_linux_amd64
+sudo install -o root -g root -m 0755 yq_linux_amd64 /usr/local/bin/yq
+```
+
+</CodeGroup>
+
+### Automated Installation
+
+```bash
+# Via bootstrap script
+./bootstrap.sh
+
+# Or manually
+zsh scripts/yq.zsh install
+```
+
+<Note>
+The installation script automatically detects your platform and downloads the appropriate binary from GitHub releases. On macOS, it uses Homebrew for easier package management.
+</Note>
+
+## Basic Usage
+
+### Reading YAML Files
+
+Query and extract data from YAML files:
+
+```bash
+# Read a specific field
+yq '.database.host' config.yaml
+
+# Read nested fields
+yq '.services[0].name' docker-compose.yml
+
+# Get all keys at a path
+yq '.plugins | keys' config.yaml
+```
+
+### Modifying YAML Files
+
+Update YAML files in place:
+
+```bash
+# Update a field
+yq -i '.database.port = 5432' config.yaml
+
+# Add a new field
+yq -i '.database.ssl = true' config.yaml
+
+# Delete a field
+yq -i 'del(.database.password)' config.yaml
+
+# Update array element
+yq -i '.services[0].replicas = 3' config.yaml
+```
+
+### Format Conversion
+
+Convert between different formats:
+
+```bash
+# YAML to JSON
+yq -o json config.yaml > config.json
+
+# JSON to YAML
+yq -P config.json > config.yaml
+
+# YAML to XML
+yq -o xml config.yaml > config.xml
+
+# CSV to JSON
+yq -p csv -o json data.csv > data.json
+```
+
+## Dotfiles Integration
+
+The dotfiles include a custom wrapper function for `jq` that uses `yq` under the hood:
+
+```bash .config/zsh.d/S20_functions
+# jq wrapper using yq
+function jq {
+	yq -oj "$@"
+}
+```
+
+This allows you to use `jq` syntax for JSON processing while leveraging yq's capabilities:
+
+```bash
+# Use jq syntax with yq backend
+jq '.users[] | select(.active == true)' users.json
+
+# The -oj flag outputs in JSON format
+```
+
+## Common Use Cases
+
+### Docker Compose Management
+
+Work with Docker Compose files:
+
+```bash
+# Get all service names
+yq '.services | keys' docker-compose.yml
+
+# Update service image version
+yq -i '.services.web.image = "nginx:1.25"' docker-compose.yml
+
+# Add environment variable
+yq -i '.services.web.environment.DEBUG = "true"' docker-compose.yml
+
+# Get service ports
+yq '.services.web.ports[]' docker-compose.yml
+```
+
+### Kubernetes Manifests
+
+Process Kubernetes configuration:
+
+```bash
+# Get container image from deployment
+yq '.spec.template.spec.containers[0].image' deployment.yaml
+
+# Update replica count
+yq -i '.spec.replicas = 5' deployment.yaml
+
+# Extract resource limits
+yq '.spec.template.spec.containers[0].resources.limits' deployment.yaml
+
+# Merge multiple manifests
+yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' base.yaml overlay.yaml
+```
+
+### Configuration File Management
+
+Manage application configuration:
+
+```bash
+# Extract database configuration
+yq '.database' config.yaml
+
+# Update multiple fields
+yq -i '.database.host = "localhost" | .database.port = 5432' config.yaml
+
+# Merge configurations
+yq eval-all '. as $item ireduce ({}; . * $item)' defaults.yaml overrides.yaml
+
+# Validate YAML syntax
+yq '.' config.yaml > /dev/null && echo "Valid YAML" || echo "Invalid YAML"
+```
+
+### CI/CD Pipelines
+
+Process CI/CD configuration files:
+
+```bash
+# Get all job names from GitHub Actions
+yq '.jobs | keys' .github/workflows/ci.yml
+
+# Update workflow trigger
+yq -i '.on.push.branches += "develop"' .github/workflows/ci.yml
+
+# Extract environment variables
+yq '.jobs.build.env' .github/workflows/ci.yml
+```
+
+## Advanced Features
+
+### Array Operations
+
+Work with arrays efficiently:
+
+```bash
+# Filter array elements
+yq '.users[] | select(.role == "admin")' users.yaml
+
+# Map over array
+yq '.services[].name' docker-compose.yml
+
+# Sort array
+yq '.users | sort_by(.name)' users.yaml
+
+# Unique values
+yq '.tags[] | unique' data.yaml
+```
+
+### Merging Files
+
+Combine multiple YAML files:
+
+```bash
+# Simple merge (last file wins)
+yq eval-all '. as $item ireduce ({}; . * $item)' file1.yaml file2.yaml
+
+# Deep merge arrays
+yq eval-all 'select(fileIndex == 0) *+ select(fileIndex == 1)' base.yaml patch.yaml
+
+# Merge specific paths
+yq eval-all 'select(fi == 0).database + select(fi == 1).database' config1.yaml config2.yaml
+```
+
+### Conditional Logic
+
+Use expressions and conditionals:
+
+```bash
+# Conditional selection
+yq '.services[] | select(.enabled == true)' config.yaml
+
+# Conditional update
+yq -i '.services[] |= select(.environment == "prod") | .replicas = 5' config.yaml
+
+# Default values
+yq '.database.port // 5432' config.yaml
+```
+
+## Upgrading
+
+Keep yq up to date with the latest features and bug fixes.
+
+### Via Bootstrap Script
+
+```bash
+# Update all tools including yq
+./bootstrap.sh --upgrade
+
+# Update only yq
+./bootstrap.sh --upgrade yq
+```
+
+### Manual Upgrade
+
+```bash
+# Upgrade yq
+zsh scripts/yq.zsh upgrade
+```
+
+<Info>
+On macOS, upgrades are handled by Homebrew. On Linux, the script checks GitHub releases for the latest version and installs it automatically.
+</Info>
+
+### Version Check
+
+The upgrade script compares your installed version with the latest release:
+
+```bash
+# Check current version
+yq --version
+
+# Output format: "yq (https://github.com/mikefarah/yq/) version 4.40.5"
+```
+
+## Tips and Best Practices
+
+### Backup Before In-Place Editing
+
+Always backup before modifying files:
+
+```bash
+# Create backup before editing
+cp config.yaml config.yaml.backup
+yq -i '.database.port = 5432' config.yaml
+```
+
+### Use Comments for Documentation
+
+yq preserves comments in YAML files:
+
+```yaml
+# Database configuration
+database:
+  host: localhost  # Development host
+  port: 5432      # PostgreSQL default port
+```
+
+### Validate Output
+
+Validate your yq expressions before applying them:
+
+```bash
+# Test expression first (without -i)
+yq '.database.port = 5432' config.yaml
+
+# Then apply in-place
+yq -i '.database.port = 5432' config.yaml
+```
+
+### Combine with Other Tools
+
+yq works great with other command-line tools:
+
+```bash
+# Count services in docker-compose
+yq '.services | keys' docker-compose.yml | wc -l
+
+# Find files and process them
+find . -name "*.yaml" -exec yq '.version' {} \;
+
+# Use with grep for filtering
+yq -o json config.yaml | grep -i database
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="yq command not found after installation">
+    Reload your shell configuration:
+    ```bash
+    source ~/.zshrc
+    ```
+    
+    Or verify the installation path:
+    ```bash
+    which yq
+    # Should output: /usr/local/bin/yq
+    ```
+  </Accordion>
+
+  <Accordion title="Syntax errors with complex expressions">
+    Use single quotes to prevent shell interpretation:
+    ```bash
+    # Wrong (shell interprets $)
+    yq ".users[] | select(.name == $USER)" file.yaml
+    
+    # Correct
+    yq '.users[] | select(.name == env(USER))' file.yaml
+    ```
+  </Accordion>
+
+  <Accordion title="In-place editing doesn't preserve formatting">
+    yq reformats files by default. To preserve some formatting:
+    ```bash
+    # Preserve style where possible
+    yq -i -P '.' file.yaml
+    ```
+  </Accordion>
+
+  <Accordion title="Permission denied when installing">
+    The installation script requires sudo for system-wide installation:
+    ```bash
+    sudo -v  # Verify sudo access
+    zsh scripts/yq.zsh install
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="yq Documentation" icon="book" href="https://mikefarah.gitbook.io/yq/">
+    Official documentation and examples
+  </Card>
+  
+  <Card title="GitHub Repository" icon="github" href="https://github.com/mikefarah/yq">
+    Source code and issue tracker
+  </Card>
+  
+  <Card title="Operator Reference" icon="list" href="https://mikefarah.gitbook.io/yq/operators">
+    Complete operator documentation
+  </Card>
+  
+  <Card title="Usage Examples" icon="code" href="https://mikefarah.gitbook.io/yq/usage/convert">
+    Real-world usage examples
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Tools Overview" icon="wrench" href="/tools/overview">
+    Explore other CLI tools in the dotfiles
+  </Card>
+  
+  <Card title="Installation Scripts" icon="code" href="/scripts/installation">
+    Learn about the installation script system
+  </Card>
+  
+  <Card title="Shell Functions" icon="terminal" href="/reference/functions">
+    See the jq wrapper function and other utilities
+  </Card>
+</CardGroup>

@@ -48,7 +48,9 @@
               "tools/bat",
               "tools/eza",
               "tools/powerlevel10k",
-              "tools/oh-my-zsh"
+              "tools/oh-my-zsh",
+              "tools/step",
+              "tools/yq"
             ]
           },
           {
