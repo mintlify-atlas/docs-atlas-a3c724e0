@@ -1,0 +1,100 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Dotfiles",
+  "projectDescription": "A comprehensive dotfiles configuration system for Zsh with automated installation scripts and modern CLI tool integrations.",
+  "theme": "aspen",
+  "primaryColor": "#10B981",
+  "lightColor": "#34D399",
+  "darkColor": "#059669",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "config/shell",
+              "config/git",
+              "config/tmux",
+              "config/vim"
+            ]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "tools/overview",
+              "tools/atuin",
+              "tools/bat",
+              "tools/eza",
+              "tools/powerlevel10k",
+              "tools/oh-my-zsh"
+            ]
+          },
+          {
+            "group": "Scripts",
+            "pages": [
+              "scripts/bootstrap",
+              "scripts/installation",
+              "scripts/upgrade"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Shell",
+            "pages": [
+              "reference/aliases",
+              "reference/functions",
+              "reference/environment"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "reference/brewfile",
+              "reference/macos",
+              "reference/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Automated installation with bootstrap.sh script",
+    "Modern CLI tools (eza, bat, atuin, powerlevel10k)",
+    "Comprehensive Zsh configuration with Oh My Zsh",
+    "Git aliases and customization",
+    "Tmux and Vim configurations",
+    "macOS-specific setup and Homebrew integration",
+    "Modular script system for individual tool installation",
+    "Cross-platform support (macOS and Linux)"
+  ],
+  "publicApiSurface": [
+    "bootstrap.sh --force",
+    "bootstrap.sh --upgrade",
+    "bootstrap.sh --sync",
+    "scripts/atuin.zsh install|upgrade",
+    "scripts/bat.zsh install|upgrade",
+    "scripts/eza.zsh install|upgrade",
+    "scripts/powerlevel10k.zsh install|upgrade",
+    "scripts/oh_my_zsh.zsh install|upgrade",
+    "scripts/step.zsh install|upgrade",
+    "scripts/yq.zsh install|upgrade",
+    "scripts/zsh_autosuggestions.zsh install|upgrade",
+    "scripts/zsh_completions.zsh install|upgrade",
+    "scripts/zsh_syntax_highlighting.zsh install|upgrade"
+  ]
+}
