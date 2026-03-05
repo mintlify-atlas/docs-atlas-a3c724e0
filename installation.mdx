@@ -1,0 +1,417 @@
+---
+title: Installation
+description: Complete guide to installing and configuring the dotfiles on your system
+---
+
+## Prerequisites
+
+Before installing the dotfiles, ensure you have the following prerequisites:
+
+<Steps>
+  <Step title="Git">
+    Git must be installed on your system to clone the repository and manage updates.
+    
+    ```bash
+    # macOS
+    xcode-select --install
+    
+    # Ubuntu/Debian
+    sudo apt-get install git
+    
+    # Fedora/RHEL
+    sudo dnf install git
+    ```
+  </Step>
+  
+  <Step title="Zsh">
+    Zsh is required as the shell. Most modern systems include it, but if not:
+    
+    ```bash
+    # macOS (usually pre-installed)
+    brew install zsh
+    
+    # Ubuntu/Debian
+    sudo apt-get install zsh
+    
+    # Fedora/RHEL
+    sudo dnf install zsh
+    ```
+  </Step>
+  
+  <Step title="Internet Connection">
+    The installation process downloads tools and packages from the internet.
+  </Step>
+</Steps>
+
+<Note>
+On macOS, Homebrew will be used to install packages. On Linux, the script supports APT (Ubuntu/Debian) and DNF (Fedora/RHEL) package managers.
+</Note>
+
+## Installation Methods
+
+### Interactive Installation (Recommended)
+
+The interactive mode asks for confirmation before each installation step, giving you full control over what gets installed.
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/ombratteng/dotfiles.git ~/.dotfiles
+    cd ~/.dotfiles
+    ```
+  </Step>
+  
+  <Step title="Run the bootstrap script">
+    ```bash
+    ./bootstrap.sh
+    ```
+    
+    The script will:
+    - Pull the latest changes from the main branch
+    - Ask if you want to install each tool (Oh My Zsh, Powerlevel10k, bat, eza, atuin, etc.)
+    - Prompt to switch your default shell to Zsh
+    - Ask if you want to sync the dotfiles to your home directory
+  </Step>
+  
+  <Step title="Respond to prompts">
+    For each installation step, you can respond with:
+    - `y` - Yes, proceed with installation
+    - `n` - No, skip this installation
+    - `q` - Quit the installation process
+  </Step>
+</Steps>
+
+<Info>
+During interactive installation, you can quit at any time by pressing `q` when prompted. Your system will remain unchanged for any steps you haven't completed yet.
+</Info>
+
+### Force Installation
+
+Use the `--force` flag for unattended installation that automatically installs all components without prompting:
+
+```bash
+./bootstrap.sh --force
+```
+
+This mode:
+- Installs all tools automatically
+- Switches to Zsh without prompting
+- Syncs dotfiles without confirmation
+- Perfect for automated setups or CI/CD environments
+
+<Warning>
+Force mode will overwrite existing dotfiles in your home directory without asking for confirmation. Make sure to backup important configurations first.
+</Warning>
+
+## Installation Options
+
+The bootstrap script supports several command-line options:
+
+### Option: `--force` / `-f`
+
+Installs all components without interactive prompts.
+
+```bash
+./bootstrap.sh --force
+```
+
+**What it does:**
+1. Installs all available tools automatically
+2. Switches default shell to Zsh
+3. Syncs all dotfiles to home directory
+4. Displays success message
+
+**Use cases:**
+- First-time setup on a new machine
+- Automated deployments
+- Docker container configurations
+- CI/CD environments
+
+### Option: `--upgrade` / `-u`
+
+Upgrades all installed tools to their latest versions.
+
+```bash
+./bootstrap.sh --upgrade
+```
+
+**What it does:**
+1. Syncs dotfiles from the repository
+2. Upgrades each installed tool to the latest version
+3. Syncs updated configurations to home directory
+
+**Upgrade a specific tool:**
+```bash
+./bootstrap.sh --upgrade powerlevel10k
+```
+
+This upgrades only the specified tool instead of all tools.
+
+<Tip>
+Run `--upgrade` regularly to keep your tools and configurations up to date with the latest features and security patches.
+</Tip>
+
+### Option: `--sync` / `-s`
+
+Syncs dotfiles from the repository to your home directory without installing or upgrading tools.
+
+```bash
+./bootstrap.sh --sync
+```
+
+**What it does:**
+1. Pulls latest changes from the Git repository
+2. Copies dotfiles to your home directory using rsync
+3. Reloads shell configuration
+
+**Use cases:**
+- You've made changes to the repository and want to apply them
+- You want to restore configurations after manual modifications
+- You need to update configuration files without reinstalling tools
+
+## Installed Components
+
+The bootstrap script installs the following components:
+
+### Core Shell Components
+
+<CardGroup cols={2}>
+  <Card title="Oh My Zsh" icon="terminal">
+    Framework for managing Zsh configuration with 300+ plugins and 140+ themes
+  </Card>
+  <Card title="Powerlevel10k" icon="bolt">
+    Fast and highly customizable Zsh theme with excellent Git integration
+  </Card>
+  <Card title="zsh-autosuggestions" icon="lightbulb">
+    Fish-like autosuggestions for Zsh based on command history
+  </Card>
+  <Card title="zsh-completions" icon="check">
+    Additional completion definitions for Zsh
+  </Card>
+  <Card title="zsh-syntax-highlighting" icon="palette">
+    Fish-like syntax highlighting for Zsh
+  </Card>
+</CardGroup>
+
+### Modern CLI Tools
+
+<CardGroup cols={2}>
+  <Card title="bat" icon="cat">
+    Cat clone with syntax highlighting and Git integration
+  </Card>
+  <Card title="eza" icon="list">
+    Modern replacement for ls with colors and Git status
+  </Card>
+  <Card title="atuin" icon="clock-rotate-left">
+    Magical shell history with sync and search capabilities
+  </Card>
+  <Card title="yq" icon="file-code">
+    YAML processor - jq but for YAML files
+  </Card>
+  <Card title="step" icon="key">
+    Crypto toolkit for working with certificates and keys
+  </Card>
+</CardGroup>
+
+### macOS-Only Tools
+
+These tools are only installed on macOS systems:
+
+- **kubectl** - Kubernetes command-line tool
+- **kubectx** - Fast way to switch between Kubernetes clusters and namespaces
+- **n** - Node.js version manager
+
+## File Sync Behavior
+
+### What Gets Synced
+
+The rsync process copies most dotfiles to your home directory:
+
+```bash bootstrap.sh
+rsync \
+	--exclude ".git/" \
+	--exclude "scripts/" \
+	--exclude ".DS_Store" \
+	--exclude ".gitignore" \
+	--exclude "bootstrap.sh" \
+	--exclude "README.md" \
+	--exclude "LICENSE" \
+	--include ".local/" \
+	--exclude "*.local" \
+	--exclude ".vscode/" \
+	--exclude "Library/" \
+	-avh --no-perms . ~;
+```
+
+### Excluded Files
+
+The following files are NOT synced to your home directory:
+
+- `.git/` - Git repository data
+- `scripts/` - Installation scripts
+- `bootstrap.sh` - The bootstrap script itself
+- `*.local` - Your personal customization files
+- `.DS_Store` - macOS metadata files
+- `.vscode/` - VS Code workspace settings
+
+### Local Customization Files
+
+Files ending in `.local` are preserved and never overwritten:
+
+<CodeGroup>
+```bash .zshrc.local
+# Personal Zsh configuration
+export MY_CUSTOM_VAR="value"
+
+# Personal aliases
+alias myproject="cd ~/projects/myproject"
+```
+
+```bash .zshenv.local
+# Environment variables
+export DOTFILES="$HOME/.dotfiles"
+export MY_API_KEY="secret-key-here"
+```
+
+```gitconfig .gitconfig.local
+[user]
+	name = Your Name
+	email = your.email@example.com
+[github]
+	user = yourusername
+```
+</CodeGroup>
+
+<Note>
+The `.gitconfig.local` file is included via the main `.gitconfig` file, allowing you to keep personal Git settings separate from the shared configuration.
+</Note>
+
+## Post-Installation Steps
+
+After installation completes:
+
+<Steps>
+  <Step title="Restart your terminal">
+    Close and reopen your terminal to ensure all changes take effect.
+  </Step>
+  
+  <Step title="Configure Powerlevel10k">
+    If this is your first time using Powerlevel10k, run the configuration wizard:
+    
+    ```bash
+    p10k configure
+    ```
+    
+    This will guide you through customizing your prompt appearance.
+  </Step>
+  
+  <Step title="Set up personal configurations">
+    Create `.local` files for personal settings:
+    
+    ```bash
+    # Git user information
+    cat > ~/.gitconfig.local << EOF
+    [user]
+    	name = Your Name
+    	email = your.email@example.com
+    EOF
+    
+    # Personal environment variables
+    echo 'export MY_VAR="value"' >> ~/.zshenv.local
+    ```
+  </Step>
+  
+  <Step title="Test the installation">
+    Verify that tools are working:
+    
+    ```bash
+    # Test modern commands
+    ls         # Should use eza
+    cat --help # Should show bat help
+    
+    # Test Git aliases
+    git graph
+    git recent-branches
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Shell not switching to Zsh
+
+If the bootstrap script cannot change your shell automatically:
+
+```bash
+# Check available shells
+cat /etc/shells
+
+# Manually change to Zsh
+chsh -s $(which zsh)
+```
+
+### Permission errors during installation
+
+Some tools require sudo access. Ensure your user has sudo privileges:
+
+```bash
+sudo -v
+```
+
+### Tools not found after installation
+
+If commands aren't found after installation, ensure the paths are correct:
+
+```bash
+# Check PATH
+echo $PATH
+
+# Reload shell configuration
+source ~/.zshrc
+```
+
+### Rsync errors
+
+If rsync fails, ensure it's installed:
+
+```bash
+# macOS
+brew install rsync
+
+# Ubuntu/Debian
+sudo apt-get install rsync
+
+# Fedora/RHEL
+sudo dnf install rsync
+```
+
+## Uninstallation
+
+To uninstall the dotfiles:
+
+<Steps>
+  <Step title="Backup your configurations">
+    ```bash
+    cp ~/.zshrc ~/.zshrc.backup
+    cp ~/.gitconfig ~/.gitconfig.backup
+    ```
+  </Step>
+  
+  <Step title="Remove dotfiles">
+    ```bash
+    # Remove the dotfiles directory
+    rm -rf ~/.dotfiles
+    
+    # Remove Oh My Zsh
+    rm -rf ~/.oh-my-zsh
+    ```
+  </Step>
+  
+  <Step title="Restore original configurations">
+    Restore any backed-up configurations or create minimal default ones.
+  </Step>
+</Steps>
+
+## Next Steps
+
+Now that you have the dotfiles installed, check out the [Quick Start Guide](/quickstart) to learn how to use your new setup effectively.

@@ -1,0 +1,453 @@
+---
+title: Vim Configuration
+description: Essential Vim configuration for comfortable editing
+---
+
+## Overview
+
+A minimal but essential Vim configuration that provides comfortable editing defaults without overwhelming complexity. Perfect as a base configuration that can be extended with plugins and personal preferences.
+
+## Complete Configuration
+
+```vim .vimrc
+syntax enable
+set tabstop=2
+set shiftwidth=2
+set expandtab
+set number
+set mouse=a
+set backspace=indent,eol,start
+```
+
+## Syntax Highlighting
+
+```vim
+syntax enable
+```
+
+Enables syntax highlighting for all supported file types. Vim will automatically detect the file type and apply appropriate color coding.
+
+<Info>
+Syntax highlighting improves code readability by color-coding keywords, strings, comments, and other language constructs.
+</Info>
+
+## Indentation Settings
+
+<Tabs>
+  <Tab title="Tab Width">
+    ```vim
+    set tabstop=2
+    ```
+
+    Sets the visual width of a tab character to 2 spaces. This affects how existing tab characters are displayed.
+
+    <Note>
+    Adjust this value based on your project's coding standards. Common values are 2, 4, or 8.
+    </Note>
+  </Tab>
+
+  <Tab title="Shift Width">
+    ```vim
+    set shiftwidth=2
+    ```
+
+    Controls the number of spaces used for each step of (auto)indent. This affects:
+    - `>>` and `<<` commands
+    - Auto-indentation
+    - Visual mode indent/dedent
+
+    <Tip>
+    Keep `shiftwidth` and `tabstop` the same value to avoid confusion.
+    </Tip>
+  </Tab>
+
+  <Tab title="Expand Tabs">
+    ```vim
+    set expandtab
+    ```
+
+    Converts tabs to spaces when pressing the Tab key. This ensures consistent indentation regardless of how different editors render tab characters.
+
+    <Info>
+    With `expandtab` enabled, pressing Tab inserts spaces (number determined by `tabstop`/`shiftwidth`) instead of a literal tab character.
+    </Info>
+  </Tab>
+</Tabs>
+
+### Why These Settings?
+
+<CodeGroup>
+```text With expandtab
+Press Tab → Inserts 2 spaces
+Consistent across all editors
+Git diffs are cleaner
+```
+
+```text Without expandtab
+Press Tab → Inserts \t character
+Appears different in different editors
+Can cause alignment issues
+```
+</CodeGroup>
+
+## Line Numbers
+
+```vim
+set number
+```
+
+Displays absolute line numbers on the left side of the window. Essential for:
+- Navigating to specific lines (`:42` jumps to line 42)
+- Referring to code in discussions
+- Using line-based commands
+
+### Alternative Numbering
+
+<CodeGroup>
+```vim Relative Numbers
+set relativenumber
+```
+
+```vim Hybrid Numbers
+set number relativenumber
+```
+
+```vim No Numbers
+set nonumber
+```
+</CodeGroup>
+
+<Tip>
+Hybrid numbering (both `number` and `relativenumber`) shows the current line's absolute number and relative numbers for other lines, making it easier to jump with commands like `10j` or `5k`.
+</Tip>
+
+## Mouse Support
+
+```vim
+set mouse=a
+```
+
+Enables mouse support in all modes (normal, visual, insert, command-line). Allows you to:
+
+| Action | Description |
+|--------|-------------|
+| Click | Move cursor |
+| Drag | Select text (visual mode) |
+| Right-click | Visual mode selection |
+| Scroll | Navigate document |
+| Click tabs | Switch between buffers |
+| Drag splits | Resize windows |
+
+<Note>
+Mouse support works in modern terminal emulators that support terminal mouse protocols (most do).
+</Note>
+
+## Backspace Behavior
+
+```vim
+set backspace=indent,eol,start
+```
+
+Makes backspace work intuitively by allowing deletion over:
+
+- **indent** - Auto-indentation
+- **eol** - End of line (join lines)
+- **start** - Characters inserted before entering insert mode
+
+<Warning>
+Without this setting, backspace behavior is restricted and can feel broken, especially for users coming from other editors.
+</Warning>
+
+## Extending the Configuration
+
+This minimal configuration serves as a solid foundation. Here are common additions:
+
+### Search Improvements
+
+```vim
+set hlsearch      " Highlight search results
+set incsearch     " Incremental search (show matches as you type)
+set ignorecase    " Case-insensitive search
+set smartcase     " Case-sensitive if search contains uppercase
+```
+
+### Visual Improvements
+
+```vim
+set cursorline    " Highlight current line
+set showmatch     " Highlight matching brackets
+set ruler         " Show cursor position
+set showcmd       " Show partial commands
+set laststatus=2  " Always show status line
+```
+
+### Editing Enhancements
+
+```vim
+set autoindent    " Copy indent from current line
+set smartindent   " Smart auto-indenting for C-like files
+set wildmenu      " Enhanced command-line completion
+set clipboard=unnamedplus  " Use system clipboard
+```
+
+### Performance
+
+```vim
+set lazyredraw    " Don't redraw during macros
+set ttyfast       " Faster terminal connection
+```
+
+### File Handling
+
+```vim
+set autoread      " Auto-reload files changed outside Vim
+set hidden        " Allow switching buffers without saving
+set noswapfile    " Disable swap files
+set nobackup      " Disable backup files
+```
+
+## Essential Vim Commands
+
+### Navigation
+
+<Tabs>
+  <Tab title="Basic Movement">
+    | Key | Action |
+    |-----|--------|
+    | `h` | Left |
+    | `j` | Down |
+    | `k` | Up |
+    | `l` | Right |
+    | `w` | Next word |
+    | `b` | Previous word |
+    | `0` | Start of line |
+    | `$` | End of line |
+    | `gg` | First line |
+    | `G` | Last line |
+  </Tab>
+
+  <Tab title="Jumping">
+    | Key | Action |
+    |-----|--------|
+    | `:42` | Jump to line 42 |
+    | `42G` | Jump to line 42 |
+    | `%` | Jump to matching bracket |
+    | `*` | Search word under cursor (forward) |
+    | `#` | Search word under cursor (backward) |
+    | `Ctrl+o` | Jump to previous location |
+    | `Ctrl+i` | Jump to next location |
+  </Tab>
+
+  <Tab title="Scrolling">
+    | Key | Action |
+    |-----|--------|
+    | `Ctrl+f` | Page down |
+    | `Ctrl+b` | Page up |
+    | `Ctrl+d` | Half page down |
+    | `Ctrl+u` | Half page up |
+    | `zz` | Center cursor line |
+    | `zt` | Cursor line to top |
+    | `zb` | Cursor line to bottom |
+  </Tab>
+</Tabs>
+
+### Editing
+
+<CodeGroup>
+```text Insert Mode
+i     Insert before cursor
+a     Insert after cursor
+I     Insert at line start
+A     Insert at line end
+o     Open line below
+O     Open line above
+```
+
+```text Deletion
+x     Delete character
+dd    Delete line
+dw    Delete word
+d$    Delete to end of line
+D     Delete to end of line
+```
+
+```text Copying
+yy    Yank (copy) line
+yw    Yank word
+y$    Yank to end of line
+p     Paste after cursor
+P     Paste before cursor
+```
+
+```text Change
+cc    Change line
+cw    Change word
+c$    Change to end of line
+r     Replace character
+R     Replace mode
+```
+</CodeGroup>
+
+### Visual Mode
+
+```vim
+v     Character-wise visual
+V     Line-wise visual
+Ctrl+v Block-wise visual
+
+In visual mode:
+d     Delete selection
+y     Yank selection
+c     Change selection
+>     Indent
+<     Dedent
+```
+
+### Search and Replace
+
+```vim
+/pattern       Search forward
+?pattern       Search backward
+n              Next match
+N              Previous match
+
+:%s/old/new/g      Replace all in file
+:s/old/new/g       Replace all in line
+:%s/old/new/gc     Replace all with confirmation
+```
+
+## Working with Multiple Files
+
+### Buffers
+
+```vim
+:e filename    Edit file
+:bn            Next buffer
+:bp            Previous buffer
+:bd            Close buffer
+:ls            List buffers
+:b N           Switch to buffer N
+```
+
+### Windows
+
+```vim
+:split         Horizontal split
+:vsplit        Vertical split
+Ctrl+w h/j/k/l Navigate between windows
+Ctrl+w w       Cycle windows
+Ctrl+w q       Close window
+Ctrl+w =       Equal window sizes
+```
+
+### Tabs
+
+```vim
+:tabnew        New tab
+:tabn          Next tab
+:tabp          Previous tab
+:tabc          Close tab
+gt             Next tab (normal mode)
+gT             Previous tab (normal mode)
+```
+
+## Plugin Management
+
+For extended functionality, consider using a plugin manager:
+
+### vim-plug
+
+Install [vim-plug](https://github.com/junegunn/vim-plug):
+
+```bash
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+```
+
+Add to `.vimrc`:
+
+```vim
+call plug#begin('~/.vim/plugged')
+
+" Example plugins
+Plug 'tpope/vim-sensible'       " Sensible defaults
+Plug 'preservim/nerdtree'       " File explorer
+Plug 'vim-airline/vim-airline'  " Status line
+Plug 'tpope/vim-fugitive'       " Git integration
+
+call plug#end()
+```
+
+Install plugins:
+```vim
+:PlugInstall
+```
+
+## Configuration File Location
+
+The `.vimrc` file should be placed in your home directory:
+
+```bash
+~/.vimrc
+```
+
+To create and edit your Vim configuration:
+
+```bash
+vim ~/.vimrc
+```
+
+<Tip>
+Changes to `.vimrc` take effect when you restart Vim or run `:source ~/.vimrc` from within Vim.
+</Tip>
+
+## Neovim Compatibility
+
+This configuration is fully compatible with Neovim. For Neovim, you can either:
+
+1. Create a symlink:
+   ```bash
+   ln -s ~/.vimrc ~/.config/nvim/init.vim
+   ```
+
+2. Or use Neovim's native config location:
+   ```bash
+   ~/.config/nvim/init.vim
+   ```
+
+<Info>
+Neovim uses `~/.config/nvim/init.vim` or `~/.config/nvim/init.lua` as its primary configuration file.
+</Info>
+
+## Troubleshooting
+
+### Colors Look Wrong
+
+Check your terminal emulator supports 256 colors and add to `.vimrc`:
+
+```vim
+set t_Co=256
+colorscheme desert
+```
+
+### Indentation Issues
+
+For specific file types, use auto-commands:
+
+```vim
+autocmd FileType python setlocal tabstop=4 shiftwidth=4
+autocmd FileType javascript setlocal tabstop=2 shiftwidth=2
+```
+
+### Mouse Not Working in Tmux
+
+Add to `.tmux.conf`:
+
+```bash
+set -g mouse on
+set -g terminal-overrides 'xterm*:smcup@:rmcup@'
+```
+
+<Warning>
+Some terminal emulators may not support all mouse features. Test your specific terminal for compatibility.
+</Warning>

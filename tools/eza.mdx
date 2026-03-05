@@ -1,0 +1,603 @@
+---
+title: 'Eza'
+description: 'A modern, maintained replacement for ls with Git awareness and icons'
+icon: 'list'
+---
+
+Eza is a modern replacement for the venerable `ls` command. It uses colours for information by default, helping you distinguish between many types of files, such as whether you are the owner, or in the owning group. It also has extra features not present in the original `ls`, such as viewing the Git status for a directory and recursive tree view.
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Git Integration" icon="git">
+    Shows Git status alongside files and directories
+  </Card>
+  
+  <Card title="Color Coding" icon="palette">
+    Rich color scheme for different file types
+  </Card>
+  
+  <Card title="Icons Support" icon="icons">
+    Optional file icons for better visual recognition
+  </Card>
+  
+  <Card title="Tree View" icon="tree">
+    Built-in recursive tree listing
+  </Card>
+</CardGroup>
+
+## Installation
+
+### macOS
+
+```bash
+brew install eza
+```
+
+### Linux
+
+The installation script automatically downloads the latest release:
+
+```bash
+# Using the dotfiles bootstrap script
+./bootstrap.sh
+
+# Or install manually
+zsh scripts/eza.zsh install
+```
+
+<Info>
+On Linux, the installation script downloads the latest release from GitHub and installs it to `/usr/local/bin/eza`.
+</Info>
+
+## Configuration
+
+### Automatic Aliases
+
+Eza is automatically aliased to replace `ls` in `.zshrc`:
+
+```bash
+# Replace default `ls` with `eza`
+if [ -x "$(command -v eza)" ] && [ -z "${_DISABLE_EZA}" ]; then
+  _eza_flags=""
+  alias ls="eza ${_eza_flags}"
+
+  _eza_flags+="--long --group --git --header --mounts "
+  alias l="eza ${_eza_flags}"
+
+  _eza_flags+="--all "
+  alias la="eza ${_eza_flags}"
+  alias laz="eza ${_eza_flags} --context"
+  alias lao="eza ${_eza_flags} --octal-permissions"
+fi
+```
+
+### Disabling Eza
+
+If you need to use the original `ls` command:
+
+```bash
+# Temporarily use original ls
+\ls
+
+# Or disable eza alias globally
+export _DISABLE_EZA=1
+```
+
+## Usage
+
+### Basic Listing
+
+```bash
+# Simple listing (replaces ls)
+ls
+
+# Long format with Git status
+l
+
+# Show all files including hidden
+la
+```
+
+### Command Aliases
+
+The dotfiles configuration provides several convenient aliases:
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `ls` | `eza` | Basic listing |
+| `l` | `eza --long --group --git --header --mounts` | Detailed listing with Git status |
+| `la` | `l --all` | Show all files including hidden |
+| `laz` | `la --context` | Show SELinux context |
+| `lao` | `la --octal-permissions` | Show octal permissions |
+
+### Long Format
+
+The `l` alias provides detailed information:
+
+```bash
+$ l
+Permissions Size User  Date Modified Git Name
+.rw-r--r--  1.2k user  5 Mar 09:30   M  README.md
+.rw-r--r--   842 user  4 Mar 14:22   -  package.json
+drwxr-xr-x     - user  5 Mar 11:15   -  src
+.rw-r--r--  3.4k user  3 Mar 16:45   N  script.sh
+```
+
+### Git Status Indicators
+
+When inside a Git repository, eza shows the status of each file:
+
+| Symbol | Meaning |
+|--------|---------|
+| `-` | Not tracked by Git |
+| `N` | New file (staged) |
+| `M` | Modified file |
+| `I` | Ignored by Git |
+| `U` | Updated but unmerged |
+| `C` | Conflict |
+
+Example:
+
+```bash
+$ l
+Permissions Size User Date Modified Git Name
+.rw-r--r--  1.5k user 5 Mar 10:30   M  README.md
+.rw-r--r--   842 user 5 Mar 10:31   N  new-file.js
+.rw-r--r--  2.1k user 4 Mar 08:15   -  old-file.js
+drwxr-xr-x     - user 5 Mar 10:15   -  src/
+```
+
+## Advanced Features
+
+### Tree View
+
+Display directory structure as a tree:
+
+```bash
+# Basic tree view
+eza --tree
+
+# Tree with depth limit
+eza --tree --level=2
+
+# Tree with Git status
+eza --tree --git
+
+# Long format tree
+eza --tree --long
+```
+
+Example output:
+
+```bash
+$ eza --tree --level=2
+.
+├── README.md
+├── package.json
+├── src
+│  ├── index.js
+│  ├── utils.js
+│  └── components
+└── tests
+   ├── unit
+   └── integration
+```
+
+### All Files
+
+Show hidden and Git-ignored files:
+
+```bash
+# Show hidden files (dotfiles)
+la
+
+# Show all files including Git-ignored
+eza --all --git-ignore
+
+# Show literally everything
+eza --all --all
+```
+
+### Sorting Options
+
+Sort output by different criteria:
+
+```bash
+# Sort by modification time (newest first)
+eza --long --sort=modified
+
+# Sort by size (largest first)
+eza --long --sort=size
+
+# Sort by extension
+eza --long --sort=extension
+
+# Sort by name (default)
+eza --long --sort=name
+
+# Reverse sort
+eza --long --sort=modified --reverse
+```
+
+### Time Styles
+
+Control how timestamps are displayed:
+
+```bash
+# Default style
+eza --long
+
+# ISO format
+eza --long --time-style=iso
+
+# Long ISO format (with time)
+eza --long --time-style=long-iso
+
+# Full timestamp
+eza --long --time-style=full-iso
+
+# Relative time (e.g., "2 days ago")
+eza --long --time-style=relative
+```
+
+### File Size Formats
+
+Control how file sizes are displayed:
+
+```bash
+# Binary sizes (default): 1.2 KiB, 3.4 MiB
+eza --long
+
+# Decimal sizes: 1.2 KB, 3.4 MB
+eza --long --binary
+
+# Bytes only
+eza --long --bytes
+```
+
+### Permission Formats
+
+Different ways to display permissions:
+
+```bash
+# Standard rwx format (default)
+l
+
+# Octal permissions (755, 644, etc.)
+lao
+
+# Extended attributes
+eza --long --extended
+```
+
+Example output:
+
+```bash
+$ lao
+Permissions Octal Size User Date Modified Name
+.rw-r--r--  0644  1.2k user 5 Mar 10:30  README.md
+drwxr-xr-x  0755     - user 5 Mar 09:15  src/
+.rwxr-xr-x  0755  3.4k user 4 Mar 14:20  script.sh
+```
+
+### Icons
+
+Enable file type icons (requires a Nerd Font):
+
+```bash
+# With icons
+eza --icons
+
+# Long format with icons
+eza --long --icons
+
+# Tree view with icons
+eza --tree --icons
+```
+
+<Note>
+Icons require a [Nerd Font](https://www.nerdfonts.com/) to be installed and configured in your terminal. Popular choices include FiraCode Nerd Font, JetBrains Mono Nerd Font, or Hack Nerd Font.
+</Note>
+
+### Grid Layout
+
+Control the grid display:
+
+```bash
+# Automatic grid (default)
+eza --grid
+
+# Across (horizontal grid)
+eza --across
+
+# One file per line
+eza --oneline
+```
+
+## Practical Examples
+
+### Recently Modified Files
+
+```bash
+# Show recently modified files
+eza --long --sort=modified --reverse | head -10
+
+# Show recently modified with relative time
+eza --long --sort=modified --time-style=relative
+```
+
+### Large Files
+
+```bash
+# Find largest files
+eza --long --sort=size --reverse
+
+# Show size in bytes for exact size
+eza --long --sort=size --reverse --bytes
+```
+
+### Git Repository Overview
+
+```bash
+# View Git status of all files
+la
+
+# View Git status in subdirectories
+eza --long --git --recurse --level=2
+```
+
+### Directory Sizes
+
+```bash
+# Show directory sizes
+eza --long --total-size
+
+# Show all subdirectories
+eza --long --only-dirs
+```
+
+### File Type Filtering
+
+```bash
+# Only show directories
+eza --long --only-dirs
+
+# Only show files
+eza --long --only-files
+
+# Filter by extension (use standard tools)
+eza --long | grep "\.js$"
+```
+
+## SELinux Context
+
+On SELinux-enabled systems, view security context:
+
+```bash
+# Show SELinux context
+laz
+
+# Or explicitly
+eza --long --all --context
+```
+
+Example output:
+
+```bash
+$ laz
+Permissions Size User Context                          Name
+.rw-r--r--  1.2k user unconfined_u:object_r:user_home_t README.md
+drwxr-xr-x     - user unconfined_u:object_r:user_home_t src/
+```
+
+## Color Customization
+
+### Using LS_COLORS
+
+Eza respects the `LS_COLORS` environment variable:
+
+```bash
+# The dotfiles include custom LS_COLORS
+source ${XDG_CONFIG_HOME}/lscolors/lscolors.sh
+
+# Then eza uses these colors
+eza --long
+```
+
+### Color Themes
+
+Eza has built-in color themes:
+
+```bash
+# Default colors
+eza --color=automatic
+
+# Always use colors (even when piping)
+eza --color=always
+
+# Never use colors
+eza --color=never
+```
+
+## Performance
+
+### Large Directories
+
+For directories with many files:
+
+```bash
+# Disable Git integration for speed
+eza --long --no-git
+
+# Simple listing (fastest)
+eza
+```
+
+### Recursive Listing
+
+Control recursion depth to avoid scanning too many files:
+
+```bash
+# Limit depth
+eza --tree --level=2
+
+# Only current directory
+eza --long
+```
+
+## Integration with Other Tools
+
+### With `find`
+
+```bash
+# List found files with details
+find . -name "*.js" -type f -exec eza --long {} +
+```
+
+### With `xargs`
+
+```bash
+# Process multiple directories
+echo "src tests" | xargs -n1 eza --long
+```
+
+### With `fzf`
+
+```bash
+# Interactive file selection
+eza --oneline | fzf
+```
+
+## Updating
+
+### macOS
+
+```bash
+brew upgrade eza
+```
+
+### Linux
+
+Use the upgrade script:
+
+```bash
+# Automatic update to latest release
+zsh scripts/eza.zsh upgrade
+```
+
+<Info>
+The upgrade script checks your installed version against the latest GitHub release and only updates if a newer version is available.
+</Info>
+
+## Troubleshooting
+
+### Icons Not Showing
+
+If icons appear as boxes or question marks:
+
+1. Install a [Nerd Font](https://www.nerdfonts.com/)
+2. Configure your terminal to use the Nerd Font
+3. Restart your terminal
+
+```bash
+# Test with icons
+eza --icons
+
+# If issues persist, use without icons
+eza --long
+```
+
+### Colors Not Working
+
+```bash
+# Check terminal color support
+echo $TERM
+
+# Force colors
+eza --color=always
+
+# Check LS_COLORS
+echo $LS_COLORS
+```
+
+### Git Status Not Showing
+
+Ensure you're inside a Git repository:
+
+```bash
+# Check if in Git repo
+git status
+
+# Force Git display
+eza --long --git
+
+# Verify eza can find Git
+which git
+```
+
+## Comparison with `ls`
+
+| Feature | ls | eza |
+|---------|----|----|
+| Color output | `-G` flag needed | Default |
+| Git integration | Not available | Built-in |
+| Tree view | Need `tree` command | `--tree` flag |
+| Icons | Not available | `--icons` flag |
+| Extended attributes | `-@` flag | `--extended` flag |
+| Time styles | Limited | Multiple formats |
+
+## Tips and Best Practices
+
+<Tip>
+Use the `l` alias for most file browsing tasks. It provides the perfect balance of information: permissions, size, user, date, and Git status.
+</Tip>
+
+### Custom Aliases
+
+Add your own aliases in `.zshrc.local`:
+
+```bash
+# Recently modified files
+alias recent="eza --long --sort=modified --reverse"
+
+# Largest files
+alias largest="eza --long --sort=size --reverse"
+
+# Git changes only
+alias changed="eza --long --git --git-ignore --all | grep -E '^[MN]'"
+
+# Tree with icons
+alias tree="eza --tree --icons --git-ignore"
+```
+
+### Quick Directory Scan
+
+```bash
+# Overview of directory
+l
+
+# Deeper look
+la
+
+# With tree structure
+eza --tree --level=2
+```
+
+## Resources
+
+- **Official Website**: [eza.rocks](https://eza.rocks)
+- **GitHub**: [eza-community/eza](https://github.com/eza-community/eza)
+- **Manual**: Run `eza --help` or `man eza`
+
+## Related Tools
+
+<CardGroup cols={2}>
+  <Card title="Bat" icon="cat" href="/tools/bat">
+    Modern cat replacement with syntax highlighting
+  </Card>
+  
+  <Card title="All CLI Tools" icon="wrench" href="/tools/overview">
+    Explore other modern CLI tools
+  </Card>
+</CardGroup>

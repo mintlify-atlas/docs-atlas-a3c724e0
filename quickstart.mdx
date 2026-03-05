@@ -1,80 +1,450 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get up and running with dotfiles in under 5 minutes
 ---
 
-## Get started in three steps
+This guide will help you go from zero to a fully configured development environment in just a few minutes.
 
-Get your documentation site running locally and make your first customization.
+## TL;DR
 
-### Step 1: Set up your local environment
+```bash
+# Clone and install
+git clone https://github.com/ombratteng/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+./bootstrap.sh --force
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+# Restart your terminal and enjoy!
+```
+
+## Step-by-Step Quick Start
+
+<Steps>
+  <Step title="Clone the repository">
+    Open your terminal and clone the dotfiles repository:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```bash
+    git clone https://github.com/ombratteng/dotfiles.git ~/.dotfiles
+    cd ~/.dotfiles
+    ```
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    This downloads the dotfiles to a hidden `.dotfiles` directory in your home folder.
+  </Step>
+  
+  <Step title="Run the bootstrap script">
+    Execute the bootstrap script with the `--force` flag for automatic installation:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```bash
+    ./bootstrap.sh --force
+    ```
+    
+    This will:
+    - Install Oh My Zsh and Powerlevel10k theme
+    - Install modern CLI tools (bat, eza, atuin, etc.)
+    - Switch your default shell to Zsh
+    - Copy all configuration files to your home directory
+    
+    <Note>
+    The installation takes 2-5 minutes depending on your internet connection and system.
+    </Note>
+  </Step>
+  
+  <Step title="Restart your terminal">
+    Close and reopen your terminal to apply all changes:
+    
+    ```bash
+    exit
+    ```
+    
+    Open a new terminal window. You should see the Powerlevel10k prompt.
+  </Step>
+  
+  <Step title="Configure Powerlevel10k (First time only)">
+    If this is your first time using Powerlevel10k, the configuration wizard will start automatically. Follow the prompts to customize your prompt style.
+    
+    If the wizard doesn't start, run:
+    
+    ```bash
+    p10k configure
+    ```
+    
+    <Tip>
+    Choose the "Rainbow" style for a colorful, informative prompt, or experiment with different styles to find what you like.
+    </Tip>
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Verify Your Setup
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+After installation, test that everything is working correctly:
 
-### Step 3: Go live
+<CodeGroup>
+```bash Modern ls (eza)
+ls
+# Should show a colorful file listing with icons
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+l
+# Shows detailed view with Git status
+```
 
-## Next steps
+```bash Modern cat (bat)
+cat ~/.zshrc
+# Should show syntax-highlighted output with line numbers
+```
 
-Now that you have your docs running, explore these key features:
+```bash Git integration
+cd ~/.dotfiles
+git status
+# Your prompt should show Git branch and status
+```
+
+```bash Git aliases
+git graph
+# Shows a pretty Git log graph
+
+git recent-branches
+# Shows your most recently used branches
+```
+</CodeGroup>
+
+<Info>
+If any command isn't working as expected, restart your terminal or run `source ~/.zshrc` to reload the configuration.
+</Info>
+
+## Essential Commands to Know
+
+### Modern Command Replacements
+
+Your dotfiles automatically replace traditional commands with modern alternatives:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="ls → eza" icon="list">
+    ```bash
+    ls        # Basic list
+    l         # Long format with Git status
+    la        # All files including hidden
+    ```
+  </Card>
+  
+  <Card title="cat → bat" icon="cat">
+    ```bash
+    cat file.txt    # Syntax highlighted
+    bat --plain     # Disable decorations
+    ```
+  </Card>
+  
+  <Card title="df → duf" icon="hard-drive">
+    ```bash
+    df              # Pretty disk usage
+    ```
+  </Card>
+  
+  <Card title="Shell history → atuin" icon="clock-rotate-left">
+    ```bash
+    # Use Ctrl+R to search history
+    # History is synced across machines
+    ```
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+### Powerful Git Aliases
+
+The dotfiles include dozens of useful Git aliases:
+
+```bash
+# View aliases
+git alias
+
+# Pretty log graph
+git graph
+
+# Detailed log with file changes
+git ll
+
+# Show recent branches
+git recent-branches
+
+# Clean up merged branches
+git prune-branches
+
+# View contributors
+git authors
+```
+
+<Tip>
+Run `git alias` to see all available Git aliases with their definitions.
+</Tip>
+
+### Zsh Features
+
+Your new shell includes powerful features:
+
+<Steps>
+  <Step title="Command autosuggestions">
+    Start typing a command you've used before. Zsh will suggest the full command in gray text. Press `→` (right arrow) to accept.
+    
+    ```bash
+    git st[→]  # Completes to 'git status'
+    ```
+  </Step>
+  
+  <Step title="Syntax highlighting">
+    Valid commands are highlighted in green, invalid ones in red as you type.
+  </Step>
+  
+  <Step title="Advanced tab completion">
+    Press `Tab` to see intelligent completions for commands, arguments, and files.
+    
+    ```bash
+    git che[Tab]  # Shows 'checkout', 'cherry', 'cherry-pick'
+    ```
+  </Step>
+  
+  <Step title="Command history search">
+    Press `Ctrl+R` to search through your command history with atuin.
+  </Step>
+</Steps>
+
+## Personalizing Your Setup
+
+### Add Personal Git Configuration
+
+Create a `.gitconfig.local` file for your personal Git settings:
+
+```bash
+cat > ~/.gitconfig.local << EOF
+[user]
+	name = Your Name
+	email = your.email@example.com
+[github]
+	user = yourusername
+EOF
+```
+
+### Add Custom Environment Variables
+
+Add personal environment variables to `.zshenv.local`:
+
+```bash
+cat > ~/.zshenv.local << EOF
+# Personal environment variables
+export EDITOR="vim"
+export PROJECTS_DIR="$HOME/projects"
+export MY_API_KEY="your-secret-key"
+EOF
+```
+
+### Add Custom Aliases and Functions
+
+Add personal shell customizations to `.zshrc.local`:
+
+```bash
+cat > ~/.zshrc.local << EOF
+# Personal aliases
+alias myproject="cd ~/projects/my-project"
+alias serve="python -m http.server 8000"
+
+# Personal functions
+function mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+EOF
+```
+
+Then reload your configuration:
+
+```bash
+source ~/.zshrc
+```
+
+<Warning>
+Never edit the main dotfiles directly (`.zshrc`, `.zshenv`, `.gitconfig`) as they will be overwritten when you sync or upgrade. Always use `.local` files for customizations.
+</Warning>
+
+## Common Workflows
+
+### Daily Usage
+
+```bash
+# Start your day
+cd ~/projects/my-project
+
+# Work with Git (enhanced prompt shows branch and status)
+git status          # Or just observe the prompt
+git graph           # View commit history
+git recent-branches # Switch to recent branch
+
+# View files with syntax highlighting
+cat src/main.js
+
+# Search command history
+# Press Ctrl+R and type to search
+```
+
+### Keeping Dotfiles Updated
+
+```bash
+# Update all tools to latest versions
+cd ~/.dotfiles
+./bootstrap.sh --upgrade
+
+# Just sync configuration changes
+./bootstrap.sh --sync
+```
+
+<Info>
+Run `--upgrade` monthly to keep your tools and configurations current with the latest features and security updates.
+</Info>
+
+### Working Across Multiple Machines
+
+```bash
+# On machine 1: Make changes to dotfiles
+cd ~/.dotfiles
+# Edit files or add new configurations
+git add .
+git commit -m "Add custom configurations"
+git push
+
+# On machine 2: Pull and sync changes
+cd ~/.dotfiles
+./bootstrap.sh --sync
+```
+
+## Useful Zsh Shortcuts
+
+Master these keyboard shortcuts to boost your productivity:
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+R` | Search command history with atuin |
+| `Ctrl+A` | Move cursor to beginning of line |
+| `Ctrl+E` | Move cursor to end of line |
+| `Ctrl+W` | Delete word before cursor |
+| `Ctrl+U` | Clear line before cursor |
+| `Ctrl+K` | Clear line after cursor |
+| `Ctrl+L` | Clear screen (keep current line) |
+| `Alt+.`  | Insert last argument from previous command |
+| `!!`     | Repeat last command |
+| `sudo !!`| Repeat last command with sudo |
+| `→`      | Accept autosuggestion |
+
+## Exploring Installed Plugins
+
+Your Zsh configuration includes many useful plugins. Here are some highlights:
+
+### Git Plugin
+
+```bash
+# Common Git aliases (from Oh My Zsh git plugin)
+gst     # git status
+gco     # git checkout
+gcb     # git checkout -b
+gp      # git push
+gl      # git pull
+glog    # git log --oneline --decorate --graph
+```
+
+### Docker Plugin
+
+```bash
+# Docker aliases
+dps     # docker ps
+dpa     # docker ps -a
+di      # docker images
+dex     # docker exec -it
+```
+
+### Kubectl Plugin (macOS only)
+
+```bash
+# Kubernetes aliases
+k       # kubectl
+kg      # kubectl get
+kd      # kubectl describe
+kdel    # kubectl delete
+```
+
+<Tip>
+Type `alias` in your terminal to see all available aliases across all plugins.
+</Tip>
+
+## Next Steps
+
+Now that you're up and running, explore these resources:
+
+<CardGroup cols={2}>
+  <Card title="Full Installation Guide" icon="book" href="/installation">
+    Learn about all installation options and detailed configuration
+  </Card>
+  
+  <Card title="Introduction" icon="home" href="/introduction">
+    Understand what's included in the dotfiles
+  </Card>
+  
+  <Card title="Powerlevel10k Docs" icon="link" href="https://github.com/romkatv/powerlevel10k">
+    Customize your prompt theme
+  </Card>
+  
+  <Card title="Oh My Zsh Plugins" icon="link" href="https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins">
+    Explore available Zsh plugins
+  </Card>
+</CardGroup>
+
+## Troubleshooting Quick Fixes
+
+### Prompt looks broken
+
+Missing font glyphs? Install a Nerd Font:
+
+```bash
+# macOS
+brew tap homebrew/cask-fonts
+brew install --cask font-meslo-lg-nerd-font
+
+# Then configure your terminal to use "MesloLGS NF" font
+```
+
+### Commands not found
+
+Reload your shell configuration:
+
+```bash
+source ~/.zshrc
+```
+
+Or restart your terminal.
+
+### Git status not showing in prompt
+
+Make sure you're in a Git repository:
+
+```bash
+cd ~/.dotfiles
+# Now you should see Git info in your prompt
+```
+
+### Autosuggestions not working
+
+The feature may be disabled. Check if the plugin is loaded:
+
+```bash
+echo $plugins | grep autosuggestions
+```
+
+If not found, the plugin may need to be reinstalled:
+
+```bash
+cd ~/.dotfiles
+./bootstrap.sh --upgrade zsh_autosuggestions
+```
+
+## Getting Help
+
+If you encounter issues:
+
+1. Check the [Installation Guide](/installation) for detailed troubleshooting
+2. Restart your terminal to ensure all changes are applied
+3. Run `./bootstrap.sh --sync` to refresh configurations
+4. Open an issue on the [GitHub repository](https://github.com/ombratteng/dotfiles/issues)
+
+Happy customizing!

@@ -1,0 +1,380 @@
+---
+title: Tmux Configuration
+description: Tmux configuration for terminal multiplexing with vim-friendly keybindings
+---
+
+## Overview
+
+Tmux (Terminal Multiplexer) configuration optimized for productivity with Vim-style keybindings, mouse support, and quality-of-life improvements.
+
+## Prefix Key
+
+The default `C-b` prefix is changed to `C-a` for easier reach:
+
+```bash .tmux.conf
+# C-b is not acceptable -- Vim uses it
+set-option -g prefix C-a
+unbind-key C-b
+bind-key C-a last-window
+```
+
+<Note>
+Press `Ctrl+a` followed by any tmux command key. Press `Ctrl+a` twice to switch to the last window.
+</Note>
+
+## Configuration Reload
+
+Quickly reload the tmux configuration:
+
+```bash .tmux.conf
+# `+r Reloads the Configuration, handy
+bind r source-file ~/.tmux.conf
+```
+
+Press `Ctrl+a` then `r` to reload configuration changes without restarting tmux.
+
+## Terminal Settings
+
+### True Color Support
+
+```bash .tmux.conf
+# Force enable xterm-256color
+set-option -g default-terminal "xterm-256color"
+```
+
+Ensures proper color rendering in terminal applications like Vim and modern CLI tools.
+
+### Default Shell
+
+```bash .tmux.conf
+# Set default shell
+set-option -g default-shell /bin/zsh
+```
+
+<Info>
+Change this to your preferred shell path if you use something other than Zsh.
+</Info>
+
+## History
+
+Extensive scrollback buffer for reviewing command output:
+
+```bash .tmux.conf
+# Scrollback Buffer n Lines
+set-option -g history-limit 30000
+```
+
+<Tip>
+Use `Ctrl+a` then `[` to enter copy mode and scroll through history with Vi keybindings.
+</Tip>
+
+## Mouse Support
+
+Full mouse support for modern terminals:
+
+```bash .tmux.conf
+# Enable mouse
+set -g mouse on
+```
+
+Mouse features:
+- Click to select panes
+- Drag borders to resize panes
+- Scroll wheel to navigate history
+- Click and drag to select text
+- Double-click to select word
+
+## Window Numbering
+
+Windows start at 1 instead of 0 for easier keyboard access:
+
+```bash .tmux.conf
+# Start numbering at 1
+set -g base-index 1
+```
+
+<Note>
+This matches most keyboard layouts where `1` is more accessible than `0`.
+</Note>
+
+## Key Repeat Speed
+
+Faster key repetition for smoother navigation:
+
+```bash .tmux.conf
+# Allows for faster key repetition
+set -s escape-time 0
+```
+
+Particularly important for Vim users to avoid ESC key delay.
+
+## Activity Monitoring
+
+Get notified when something happens in other windows:
+
+```bash .tmux.conf
+# Monitor Activity and Notifying if other windows has activities
+setw -g monitor-activity on
+set -g visual-activity on
+```
+
+Visual indicators appear in the status bar when activity occurs in background windows.
+
+## Vi Mode
+
+Enable Vi-style keybindings for copy mode:
+
+```bash .tmux.conf
+# Set VI mode keys
+setw -g mode-keys vi
+set -g terminal-overrides 'xterm*:smcup@:rmcup@'
+```
+
+In copy mode (`Ctrl+a` then `[`):
+- `h`, `j`, `k`, `l` for navigation
+- `v` to start selection
+- `y` to yank (copy)
+- `/` to search forward
+- `?` to search backward
+
+## Window and Pane Management
+
+### Split Windows
+
+Intuitive keybindings for creating panes:
+
+```bash .tmux.conf
+# Splitting windows into panes with h and v
+bind-key v split-window -v
+bind-key h split-window -h
+```
+
+- `Ctrl+a` then `h` - Split horizontally (side by side)
+- `Ctrl+a` then `v` - Split vertically (top and bottom)
+
+<Tip>
+Think of `h` as horizontal split (side-by-side) and `v` as vertical split (stacked).
+</Tip>
+
+### Kill Window
+
+Confirmation before closing a window:
+
+```bash .tmux.conf
+# Kill Window k
+unbind k
+bind k confirm-before "kill-window"
+```
+
+Press `Ctrl+a` then `k` to kill the current window (with confirmation).
+
+### Root Window
+
+Quick access to a root shell:
+
+```bash .tmux.conf
+# Start root in a new Window, with full Environment
+bind-key R new-window 'sudo su'
+```
+
+Press `Ctrl+a` then `Shift+r` to open a new window with root privileges.
+
+<Warning>
+Use root windows carefully. Consider using `sudo` for individual commands instead.
+</Warning>
+
+### Process Monitor
+
+Quick access to system monitoring:
+
+```bash .tmux.conf
+# Quick view of Processes
+bind-key '~' new-window 'exec top'
+```
+
+Press `Ctrl+a` then `~` to open `top` in a new window.
+
+## Status Bar
+
+Minimal status bar configuration:
+
+```bash .tmux.conf
+# Set status bar
+set -g status-bg black
+set -g status-fg white
+set -g status-left ""
+set -g status-right "#[fg=green,bold]#H#[default]"
+```
+
+The status bar displays:
+- **Left**: Empty (customize as needed)
+- **Right**: Hostname in bold green
+
+### Customization Examples
+
+<CodeGroup>
+```bash Show Current Path
+set -g status-left "[#S] "
+set -g status-left-length 20
+```
+
+```bash Show Date and Time
+set -g status-right "#[fg=yellow]%Y-%m-%d #[fg=green]%H:%M #[fg=green,bold]#H"
+```
+
+```bash Show Load Average
+set -g status-right "#[fg=cyan]#(uptime | cut -d',' -f 3-) #[fg=green,bold]#H"
+```
+</CodeGroup>
+
+## Common Tmux Commands
+
+### Session Management
+
+<Tabs>
+  <Tab title="Create Session">
+    ```bash
+    # Create new session
+    tmux new -s mysession
+    
+    # Create detached session
+    tmux new -s mysession -d
+    ```
+  </Tab>
+
+  <Tab title="Attach Session">
+    ```bash
+    # Attach to session
+    tmux attach -t mysession
+    
+    # Attach to most recent session
+    tmux attach
+    ```
+  </Tab>
+
+  <Tab title="List Sessions">
+    ```bash
+    # List all sessions
+    tmux ls
+    
+    # Or from inside tmux
+    # Ctrl+a then s
+    ```
+  </Tab>
+
+  <Tab title="Kill Session">
+    ```bash
+    # Kill specific session
+    tmux kill-session -t mysession
+    
+    # Kill all sessions
+    tmux kill-server
+    ```
+  </Tab>
+</Tabs>
+
+### Window Management
+
+| Command | Description |
+|---------|-------------|
+| `Ctrl+a` `c` | Create new window |
+| `Ctrl+a` `n` | Next window |
+| `Ctrl+a` `p` | Previous window |
+| `Ctrl+a` `0-9` | Select window by number |
+| `Ctrl+a` `,` | Rename current window |
+| `Ctrl+a` `&` | Kill current window |
+| `Ctrl+a` `w` | List all windows |
+
+### Pane Management
+
+| Command | Description |
+|---------|-------------|
+| `Ctrl+a` `h` | Split horizontally |
+| `Ctrl+a` `v` | Split vertically |
+| `Ctrl+a` `o` | Cycle through panes |
+| `Ctrl+a` `q` | Show pane numbers |
+| `Ctrl+a` `x` | Kill current pane |
+| `Ctrl+a` `{` | Move pane left |
+| `Ctrl+a` `}` | Move pane right |
+| `Ctrl+a` `z` | Toggle pane zoom |
+| `Ctrl+a` `Space` | Cycle through layouts |
+
+### Copy Mode
+
+| Command | Description |
+|---------|-------------|
+| `Ctrl+a` `[` | Enter copy mode |
+| `q` | Exit copy mode |
+| `Space` | Start selection |
+| `Enter` | Copy selection |
+| `Ctrl+a` `]` | Paste buffer |
+
+## Advanced Configuration
+
+### Nested Tmux Sessions
+
+When connecting to remote servers that also run tmux:
+
+```bash .tmux.conf
+# Send prefix to nested tmux session
+bind-key a send-prefix
+```
+
+Press `Ctrl+a` then `a` to send the prefix to a nested tmux session.
+
+### Session Persistence
+
+For automatic session saving and restoration, consider installing [tmux-resurrect](https://github.com/tmux-plugins/tmux-resurrect):
+
+```bash
+# Clone the plugin
+git clone https://github.com/tmux-plugins/tmux-resurrect ~/.tmux/plugins/tmux-resurrect
+```
+
+Add to `.tmux.conf`:
+```bash
+run-shell ~/.tmux/plugins/tmux-resurrect/resurrect.tmux
+```
+
+<Info>
+With tmux-resurrect, press `Ctrl+a` `Ctrl+s` to save sessions and `Ctrl+a` `Ctrl+r` to restore them.
+</Info>
+
+## Troubleshooting
+
+### Colors Not Working
+
+If colors don't render correctly:
+
+1. Check terminal emulator supports 256 colors:
+   ```bash
+   echo $TERM
+   ```
+
+2. Set correct terminal type:
+   ```bash
+   set-option -g default-terminal "screen-256color"
+   ```
+
+### Mouse Not Working
+
+For older tmux versions (before 2.1), use:
+```bash
+set -g mode-mouse on
+set -g mouse-resize-pane on
+set -g mouse-select-pane on
+set -g mouse-select-window on
+```
+
+### Key Bindings Not Working
+
+Reload configuration:
+```bash
+tmux source-file ~/.tmux.conf
+```
+
+Or press `Ctrl+a` then `r` if the reload binding is configured.
+
+<Warning>
+Some key bindings may conflict with terminal emulator shortcuts. Check your terminal settings if bindings don't work as expected.
+</Warning>

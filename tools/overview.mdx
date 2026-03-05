@@ -1,0 +1,281 @@
+---
+title: 'Modern CLI Tools'
+description: 'Overview of powerful command-line tools that enhance your terminal experience'
+icon: 'wrench'
+---
+
+This dotfiles configuration includes a curated collection of modern CLI tools that replace traditional Unix commands with more powerful, user-friendly alternatives. These tools provide better syntax highlighting, improved output formatting, and enhanced functionality.
+
+## Featured Tools
+
+<CardGroup cols={2}>
+  <Card title="Atuin" icon="clock-rotate-left" href="/tools/atuin">
+    Magical shell history with sync capabilities across machines
+  </Card>
+  
+  <Card title="Bat" icon="cat" href="/tools/bat">
+    Cat clone with syntax highlighting and Git integration
+  </Card>
+  
+  <Card title="Eza" icon="list" href="/tools/eza">
+    Modern replacement for ls with Git awareness and icons
+  </Card>
+  
+  <Card title="Powerlevel10k" icon="rocket" href="/tools/powerlevel10k">
+    Fast and flexible Zsh theme with instant prompt
+  </Card>
+  
+  <Card title="Oh My Zsh" icon="terminal" href="/tools/oh-my-zsh">
+    Framework for managing Zsh configuration and plugins
+  </Card>
+  
+  <Card title="Zsh Plugins" icon="puzzle-piece" href="#zsh-plugins">
+    Essential plugins for autosuggestions and syntax highlighting
+  </Card>
+</CardGroup>
+
+## Quick Comparison
+
+| Traditional Tool | Modern Alternative | Key Improvements |
+|-----------------|-------------------|------------------|
+| `cat` | `bat` | Syntax highlighting, Git integration, line numbers |
+| `ls` | `eza` | Git status, icons, tree view, better formatting |
+| Standard prompt | `powerlevel10k` | Git info, fast rendering, customizable segments |
+
+## Command Aliases
+
+The configuration automatically sets up convenient aliases for these tools:
+
+### File Listing (Eza)
+
+```bash
+# Basic listing with eza
+ls              # Replaces default ls
+
+# Long format with git status
+l               # eza --long --group --git --header --mounts
+
+# Show all files including hidden
+la              # eza --long --group --git --header --mounts --all
+
+# Additional variants
+laz             # la with SELinux context
+lao             # la with octal permissions
+```
+
+### File Viewing (Bat)
+
+```bash
+# View file with syntax highlighting
+cat filename.js  # Automatically uses bat
+
+# Bat-specific features
+bat --language=json config.json    # Force language
+bat --show-all file.txt            # Show non-printable characters
+bat --diff file1.txt file2.txt     # Show diff
+```
+
+### Shell History (Atuin)
+
+```bash
+# Search history (interactive)
+Ctrl+R          # Opens Atuin search interface
+
+# Atuin commands
+atuin search <query>     # Search history
+atuin stats              # View statistics
+atuin sync               # Sync history across machines
+```
+
+## Installation Methods
+
+### macOS (Homebrew)
+
+```bash
+# All tools can be installed via Homebrew
+brew install atuin bat eza
+```
+
+### Linux
+
+The dotfiles include automated installation scripts for each tool:
+
+```bash
+# Using the bootstrap script
+./bootstrap.sh
+
+# Or manually for specific tools
+zsh scripts/atuin.zsh install
+zsh scripts/bat.zsh install
+zsh scripts/eza.zsh install
+```
+
+<Note>
+On Linux, most tools are installed from official releases or system package managers. The scripts handle version checking and automatic updates.
+</Note>
+
+## Zsh Plugins
+
+The configuration includes essential Zsh plugins that enhance the shell experience:
+
+### Zsh Autosuggestions
+
+Suggests commands as you type based on history and completions.
+
+```bash
+# Installed to
+~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+
+# Accept suggestion with
+→  # Right arrow key
+```
+
+### Zsh Syntax Highlighting
+
+Provides real-time syntax highlighting for commands.
+
+```bash
+# Installed to
+~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+
+# Features
+- Valid commands: green
+- Invalid commands: red
+- Paths: underlined
+- Strings: yellow
+```
+
+### Oh My Zsh Built-in Plugins
+
+The configuration enables numerous useful plugins:
+
+```bash
+plugins=(
+  aliases              # Alias management
+  colored-man-pages    # Colorized man pages
+  docker              # Docker completions
+  docker-compose      # Docker Compose completions
+  gh                  # GitHub CLI completions
+  git                 # Git aliases and completions
+  gitignore           # gitignore.io integration
+  helm                # Helm completions
+  kubectl             # Kubernetes completions
+  kubectx             # kubectx/kubens completions
+  pip                 # Python pip completions
+  poetry              # Poetry completions
+  sudo                # ESC ESC to prefix sudo
+  yarn                # Yarn completions
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+```
+
+<Tip>
+Press `ESC` twice to add `sudo` to the beginning of the current command - a handy feature from the sudo plugin!
+</Tip>
+
+## Configuration Files
+
+### Main Configuration
+
+The primary Zsh configuration is in `.zshrc`:
+
+```bash
+# Theme
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# History format
+HIST_STAMPS="dd.mm.yyyy"
+
+# Tool initialization
+eval "$(atuin init zsh --disable-up-arrow)"
+```
+
+### Environment Variables
+
+Disable specific tools if needed:
+
+```bash
+# In .zshrc.local or environment
+export _DISABLE_ATUIN=1        # Disable Atuin
+export _DISABLE_BAT=1          # Disable Bat
+export _DISABLE_EZA=1          # Disable Eza
+export _DISABLE_NEOFETCH=1     # Disable Neofetch
+```
+
+## Updating Tools
+
+### Via Bootstrap Script
+
+```bash
+# Update all tools
+./bootstrap.sh
+```
+
+### Individual Tool Updates
+
+```bash
+# Update specific tools
+zsh scripts/atuin.zsh upgrade
+zsh scripts/bat.zsh upgrade
+zsh scripts/eza.zsh upgrade
+zsh scripts/powerlevel10k.zsh upgrade
+zsh scripts/oh_my_zsh.zsh upgrade
+```
+
+<Info>
+On macOS, upgrades are handled by Homebrew. On Linux, the scripts check GitHub releases for the latest versions and install them automatically.
+</Info>
+
+## Additional Features
+
+### LS_COLORS
+
+Custom color scheme for file listings:
+
+```bash
+# Loaded from
+${XDG_CONFIG_HOME}/lscolors/lscolors.sh
+```
+
+### Neofetch
+
+Displays system information on shell startup:
+
+```bash
+# Automatically runs if installed
+# Can be disabled with
+export _DISABLE_NEOFETCH=1
+```
+
+### Completion System
+
+Enhanced completion system with multiple sources:
+
+```bash
+# Zsh completions
+autoload -Uz compinit && compinit -u
+
+# Bash completions compatibility
+autoload -U bashcompinit && bashcompinit
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configure Atuin" icon="gear" href="/tools/atuin">
+    Set up shell history sync and customization
+  </Card>
+  
+  <Card title="Customize Powerlevel10k" icon="paint-brush" href="/tools/powerlevel10k">
+    Run the configuration wizard to personalize your prompt
+  </Card>
+  
+  <Card title="Explore Eza Options" icon="magnifying-glass" href="/tools/eza">
+    Learn about advanced file listing features
+  </Card>
+  
+  <Card title="Learn Bat Features" icon="book" href="/tools/bat">
+    Discover syntax highlighting and paging options
+  </Card>
+</CardGroup>

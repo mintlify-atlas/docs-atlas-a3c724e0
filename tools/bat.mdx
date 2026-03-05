@@ -1,0 +1,553 @@
+---
+title: 'Bat'
+description: 'A cat clone with syntax highlighting and Git integration'
+icon: 'cat'
+---
+
+Bat is a modern replacement for the classic `cat` command with syntax highlighting, Git integration, automatic paging, and many other features that make viewing files in the terminal much more pleasant.
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Syntax Highlighting" icon="code">
+    Automatic language detection and beautiful syntax highlighting
+  </Card>
+  
+  <Card title="Git Integration" icon="git">
+    Shows Git modifications in the gutter
+  </Card>
+  
+  <Card title="Automatic Paging" icon="file">
+    Uses a pager for large files automatically
+  </Card>
+  
+  <Card title="Line Numbers" icon="list-ol">
+    Displays line numbers by default
+  </Card>
+</CardGroup>
+
+## Installation
+
+### macOS
+
+```bash
+brew install bat
+```
+
+### Linux
+
+The installation script uses your system package manager:
+
+```bash
+# Using the dotfiles bootstrap script
+./bootstrap.sh
+
+# Or install manually
+zsh scripts/bat.zsh install
+```
+
+<Info>
+On Debian/Ubuntu-based systems, the package is named `bat`. On some distributions, it may be installed as `batcat` to avoid conflicts. The dotfiles configuration handles both cases.
+</Info>
+
+## Configuration
+
+### Automatic Alias
+
+Bat is automatically aliased to `cat` in `.zshrc`:
+
+```bash
+# Replace default `cat` with `bat`
+if [ -z "${_DISABLE_BAT}" ]; then
+  if [ -x "$(command -v bat)" ]; then
+    alias cat="bat"
+  elif [ -x "$(command -v batcat)" ]; then
+    alias cat="batcat"
+  fi
+fi
+```
+
+### Disabling Bat
+
+If you need to use the original `cat` command:
+
+```bash
+# Temporarily use original cat
+\cat filename
+
+# Or disable bat alias globally
+export _DISABLE_BAT=1
+```
+
+## Usage
+
+### Basic File Viewing
+
+```bash
+# View a file with syntax highlighting
+cat file.js
+
+# View multiple files
+cat file1.js file2.py file3.md
+
+# View with original cat (bypass alias)
+\cat file.txt
+```
+
+### Language Detection
+
+Bat automatically detects the language from file extension:
+
+```bash
+# JavaScript
+cat script.js
+
+# Python
+cat app.py
+
+# Markdown
+cat README.md
+
+# JSON
+cat package.json
+```
+
+### Force Language
+
+Override automatic language detection:
+
+```bash
+# Force JavaScript highlighting
+bat --language=js config
+
+# Force JSON highlighting
+bat --language=json data.txt
+
+# List all supported languages
+bat --list-languages
+```
+
+Example output:
+
+```bash
+$ bat --list-languages
+...
+JavaScript (js, mjs)
+JSON (json)
+Julia (jl)
+Kotlin (kt, kts)
+LaTeX (tex, sty)
+...
+```
+
+## Advanced Features
+
+### Show All Characters
+
+Display non-printable characters:
+
+```bash
+# Show tabs, line endings, etc.
+bat --show-all file.txt
+
+# Short form
+bat -A file.txt
+```
+
+Example output:
+
+```bash
+Hello·World␊
+Tab→here␊
+```
+
+### Line Numbers
+
+Control line number display:
+
+```bash
+# Show line numbers (default)
+bat file.txt
+
+# Disable line numbers
+bat --style=plain file.txt
+
+# Show only line numbers (no grid)
+bat --style=numbers file.txt
+```
+
+### Line Ranges
+
+View specific line ranges:
+
+```bash
+# Show lines 10-20
+bat --line-range 10:20 file.txt
+
+# Show lines from 10 to end
+bat --line-range 10: file.txt
+
+# Show first 20 lines
+bat --line-range :20 file.txt
+```
+
+### Git Integration
+
+Bat shows Git modifications in the gutter when inside a Git repository:
+
+```bash
+# View file with Git changes
+bat modified-file.js
+```
+
+Indicators:
+
+- `+` - Added line
+- `-` - Removed line  
+- `~` - Modified line
+
+### Theming
+
+Bat supports various color themes:
+
+```bash
+# List available themes
+bat --list-themes
+
+# Preview a theme
+bat --theme="Monokai Extended" file.js
+
+# Use a specific theme
+bat --theme="Dracula" file.js
+```
+
+Popular themes:
+
+- `Monokai Extended`
+- `Dracula`
+- `GitHub`
+- `Solarized (dark/light)`
+- `Nord`
+- `gruvbox`
+
+## Configuration File
+
+### Location
+
+```bash
+# Create config directory
+mkdir -p ~/.config/bat
+
+# Edit config file
+~/.config/bat/config
+```
+
+### Common Settings
+
+```bash
+# Set default theme
+--theme="Monokai Extended"
+
+# Set default style
+--style="numbers,changes,header"
+
+# Set pager (default is 'less')
+--pager="less -FR"
+
+# Map extensions to languages
+--map-syntax "*.conf:INI"
+--map-syntax ".ignore:Git Ignore"
+```
+
+### Style Options
+
+Available style components:
+
+```bash
+--style=full           # All components (default)
+--style=auto           # Auto-detect based on output
+--style=plain          # No decorations
+--style=numbers        # Line numbers only
+--style=changes        # Git changes only
+--style=header         # Filename header only
+--style=grid           # Grid/borders only
+
+# Combine multiple
+--style=numbers,changes,header
+```
+
+## Paging
+
+### Automatic Paging
+
+Bat automatically uses a pager for large files:
+
+```bash
+# Automatic paging (default)
+bat large-file.txt
+
+# Disable paging
+bat --paging=never large-file.txt
+
+# Always use pager
+bat --paging=always small-file.txt
+```
+
+### Custom Pager
+
+Set a custom pager:
+
+```bash
+# Use a specific pager
+bat --pager="most" file.txt
+
+# Use less with options
+bat --pager="less -RF" file.txt
+
+# Disable pager
+bat --pager="never" file.txt
+```
+
+## Practical Examples
+
+### View Configuration Files
+
+```bash
+# View shell config with highlighting
+cat ~/.zshrc
+
+# View SSH config
+cat ~/.ssh/config
+
+# View Git config
+cat ~/.gitconfig
+```
+
+### Preview Code
+
+```bash
+# Preview before editing
+cat main.go
+
+# Check syntax quickly
+cat script.sh
+```
+
+### Compare with Git Diff
+
+```bash
+# View file with Git changes highlighted
+cat modified-file.js
+
+# See what changed
+git diff modified-file.js | bat --language=diff
+```
+
+### View JSON with Highlighting
+
+```bash
+# Pretty view of JSON
+cat package.json
+
+# View API response
+curl -s https://api.github.com/users/octocat | bat --language=json
+```
+
+### Documentation Preview
+
+```bash
+# View markdown with highlighting
+cat README.md
+
+# View with specific theme
+bat --theme="GitHub" CHANGELOG.md
+```
+
+## Integration with Other Tools
+
+### With `find`
+
+```bash
+# View all JavaScript files
+find . -name "*.js" -exec bat {} +
+
+# View first match
+find . -name "config.json" -exec bat {} \;
+```
+
+### With `grep`
+
+```bash
+# Search and view with context
+grep -l "TODO" *.js | xargs bat
+```
+
+### With `git`
+
+```bash
+# View file from specific commit
+git show HEAD:file.js | bat --language=js
+
+# View Git diff with syntax highlighting
+git diff | bat --language=diff
+
+# View Git log with paging
+git log --oneline | bat --language=log
+```
+
+### As Git Pager
+
+Configure Git to use bat for diffs:
+
+```bash
+# In .gitconfig
+[core]
+    pager = bat --style=plain
+
+[pager]
+    diff = bat --style=plain --language=diff
+    show = bat --style=plain --language=diff
+    log = bat --style=plain
+```
+
+## Performance
+
+### Large Files
+
+For very large files:
+
+```bash
+# Disable paging and decorations for speed
+bat --style=plain --paging=never huge-file.log
+
+# Use original cat for maximum speed
+\cat huge-file.log
+```
+
+### Binary Files
+
+Bat automatically detects binary files:
+
+```bash
+# Tries to view binary file
+bat image.png
+
+# Output: [binary file detected - use original cat to view]
+```
+
+## Updating
+
+### macOS
+
+```bash
+brew upgrade bat
+```
+
+### Linux
+
+```bash
+# Using the upgrade script
+zsh scripts/bat.zsh upgrade
+```
+
+<Note>
+On Linux, bat upgrades are handled by the system package manager. The dotfiles script will use `apt-get` or `dnf` depending on your distribution.
+</Note>
+
+## Troubleshooting
+
+### Command Not Found
+
+On some systems, bat is installed as `batcat`:
+
+```bash
+# Check which command is available
+which bat || which batcat
+
+# The dotfiles alias handles this automatically
+cat file.txt  # Uses bat or batcat
+```
+
+### Syntax Highlighting Not Working
+
+```bash
+# Check if language is supported
+bat --list-languages | grep -i <language>
+
+# Force a specific language
+bat --language=<lang> file
+
+# Rebuild cache
+bat cache --build
+```
+
+### Theme Issues
+
+```bash
+# List available themes
+bat --list-themes
+
+# Test with default theme
+bat --theme="Monokai Extended" file.txt
+
+# Clear cache and rebuild
+bat cache --clear
+bat cache --build
+```
+
+## Tips and Best Practices
+
+<Tip>
+Use `\cat` to temporarily bypass the bat alias when you need the raw output without colors or line numbers (e.g., for piping to other commands).
+</Tip>
+
+### Piping to Other Commands
+
+When piping to other commands, bat automatically disables decorations:
+
+```bash
+# Automatic plain style when piping
+cat file.txt | grep "pattern"
+
+# Equivalent to
+\cat file.txt | grep "pattern"
+```
+
+### File Type Mapping
+
+Map custom file extensions:
+
+```bash
+# In ~/.config/bat/config
+--map-syntax "*.jenkinsfile:Groovy"
+--map-syntax ".env*:Bash"
+--map-syntax "*.config:JSON"
+```
+
+### Quick File Preview
+
+```bash
+# Create an alias for quick preview
+alias preview="bat --style=numbers,changes"
+
+# Use it
+preview file.js
+```
+
+## Resources
+
+- **Official Website**: [github.com/sharkdp/bat](https://github.com/sharkdp/bat)
+- **Manual**: Run `bat --help` or `man bat`
+- **Themes**: [github.com/bat-extras/prettybat](https://github.com/bat-extras/prettybat)
+
+## Related Tools
+
+<CardGroup cols={2}>
+  <Card title="Eza" icon="list" href="/tools/eza">
+    Modern ls replacement with Git integration
+  </Card>
+  
+  <Card title="All CLI Tools" icon="wrench" href="/tools/overview">
+    Explore other modern CLI tools
+  </Card>
+</CardGroup>

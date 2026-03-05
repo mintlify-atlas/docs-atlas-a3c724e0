@@ -1,0 +1,306 @@
+---
+title: Shell Aliases
+description: Comprehensive list of shell aliases for improved terminal productivity
+---
+
+This page documents all shell aliases defined in the dotfiles configuration. These aliases provide shortcuts and safer defaults for common commands.
+
+## Terminal Navigation & File Management
+
+<AccordionGroup>
+  <Accordion title="ls - Directory Listing Aliases">
+    Enhanced `ls` commands with better default options:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `ls` | `ls --grid` | Grid view of files |
+    | `l` | `ls --long --header` | Long format with header |
+    | `la` | `ls --long --all --header` | Long format with all files and header |
+    | `laz` | `ls --long --all --header --context` | Long format with SELinux context |
+    | `lao` | `ls --long --all --header --octal-permissions` | Long format with octal permissions |
+
+    ```bash
+    # Example usage
+    la          # List all files in long format
+    lao         # List all files with octal permissions
+    ```
+  </Accordion>
+
+  <Accordion title="File Operations - cp, mv, mkdir, rm">
+    Safer file operations with verbose output and confirmation prompts:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `cp` | `nocorrect cp -iv` | Copy with confirmation and verbose output |
+    | `mv` | `nocorrect mv -iv` | Move with confirmation and verbose output |
+    | `mkdir` | `nocorrect mkdir -pv` | Create directories with parent creation |
+    | `rm` | `rm -v` | Remove with verbose output |
+    | `mkcd` | `take` | Create directory and cd into it |
+
+    <Note>
+    The `nocorrect` prefix disables zsh's spelling correction for these commands.
+    </Note>
+
+    ```bash
+    # Example usage
+    cp file.txt backup.txt    # Copy with confirmation
+    mkdir -p path/to/dir      # Create nested directories
+    mkcd new-project          # Create and enter directory
+    ```
+  </Accordion>
+
+  <Accordion title="Directory Navigation">
+    Quick navigation shortcuts:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `cd..` | `cd ../` | Go back 1 directory (typo-friendly) |
+    | `..` | `cd ../` | Go back 1 directory |
+    | `...` | `cd ../../` | Go back 2 directory levels |
+
+    ```bash
+    # Example usage
+    ..          # Go up one level
+    ...         # Go up two levels
+    ```
+  </Accordion>
+
+  <Accordion title="Path Inspection">
+    Display PATH and FPATH variables in readable format:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `path` | `echo -e ${PATH//:/\\n}` | Display all executable paths |
+    | `fpath` | `echo -e ${FPATH//:/\\n}` | Display all zsh function paths |
+    | `completions` | `echo $fpath \| sed -e "s/ /\n/g" \| sort` | Display sorted completion paths |
+
+    ```bash
+    # Example usage
+    path          # See all directories in PATH
+    completions   # View all completion directories
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## System Utilities
+
+<AccordionGroup>
+  <Accordion title="Disk Usage - df, du">
+    Enhanced disk usage commands with human-readable output:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `df` | `df -h -x overlay -x tmpfs` | Show disk space, excluding overlay/tmpfs |
+    | `du` | `du -ch` | Show directory sizes with grand total |
+    | `du1` | `du -chd1` | Show current directory and immediate children |
+
+    <Note>
+    The `df` alias excludes overlay and tmpfs filesystems on non-BSD systems.
+    </Note>
+
+    ```bash
+    # Example usage
+    df            # Show disk usage across filesystems
+    du1           # Quick size overview of current directory
+    ```
+  </Accordion>
+
+  <Accordion title="Shell & SSH">
+    Shell reload and SSH utilities:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `reload` | `exec zsh` | Reload zsh configuration |
+    | `ssh0` | `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null` | SSH without host key verification |
+    | `ygui` | `true` | No-op (legacy muscle memory) |
+
+    <Tip>
+    Use `reload` after modifying your zsh configuration files to apply changes immediately.
+    </Tip>
+
+    ```bash
+    # Example usage
+    reload        # Reload shell configuration
+    ssh0 user@host # Quick SSH without known_hosts
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Git Shortcuts
+
+Quick access to common git commands:
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `s` | `git status` | Show git status |
+| `add` | `git add` | Stage files |
+| `commit` | `git commit` | Create commit |
+
+```bash
+# Example usage
+s               # Check repository status
+add .           # Stage all changes
+commit -m "msg" # Create commit
+```
+
+## Network Utilities
+
+<AccordionGroup>
+  <Accordion title="IP Address Queries">
+    Retrieve public and local IP addresses:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `myip` | `curl -4 icanhazip.com; curl -6 icanhazip.com` | Get public IPv4 and IPv6 |
+    | `ips` | `ip a s \| grep 'inet ' \| awk '{print $2}' \| cut -f1 -d'/' \| sort` | List all local IPv4 addresses |
+    | `ip6s` | Complex grep/awk pipeline | List all local IPv6 addresses |
+    | `ip4` | `ip -4` | Query IPv4 only |
+    | `ip6` | `ip -6` | Query IPv6 only |
+
+    ```bash
+    # Example usage
+    myip          # Show public IP addresses
+    ips           # List all local IPv4 addresses
+    ip4 addr      # Show IPv4 addresses only
+    ```
+  </Accordion>
+
+  <Accordion title="DNS Queries">
+    DNS lookup shortcuts:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `dig4` | `dig -4` | DNS query using IPv4 only |
+    | `dig6` | `dig -6` | DNS query using IPv6 only |
+
+    ```bash
+    # Example usage
+    dig4 example.com    # IPv4 DNS lookup
+    dig6 example.com    # IPv6 DNS lookup
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Container Management
+
+<AccordionGroup>
+  <Accordion title="Docker">
+    Docker shortcuts:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `dk` | `docker kill $(docker ps -q)` | Kill all running containers |
+
+    <Note>
+    The `dc` function (not alias) intelligently uses either `docker-compose` or `docker compose` depending on availability.
+    </Note>
+
+    ```bash
+    # Example usage
+    dk            # Stop all containers (use with caution!)
+    dc up -d      # Start docker compose services
+    ```
+  </Accordion>
+
+  <Accordion title="Kubernetes Context">
+    Kubernetes context management shortcuts:
+
+    | Alias | Command | Description |
+    |-------|---------|-------------|
+    | `kctx` | `kubectx` | Switch Kubernetes context |
+    | `kns` | `kubens` | Switch Kubernetes namespace |
+
+    ```bash
+    # Example usage
+    kctx production    # Switch to production context
+    kns default        # Switch to default namespace
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## macOS Specific
+
+Aliases specific to macOS systems:
+
+| Alias | Command | Description |
+|-------|---------|-------------|
+| `flushDNS` | `sudo killall -HUP mDNSResponder` | Flush DNS cache |
+| `cleanupDS` | `find . -type f -name '*.DS_Store' -ls -delete` | Delete all .DS_Store files recursively |
+
+```bash
+# Example usage (macOS only)
+flushDNS      # Clear DNS cache
+cleanupDS     # Clean up .DS_Store files
+```
+
+## Source Code
+
+The aliases are defined in `.config/zsh.d/S10_aliases`:
+
+```bash
+#! /usr/bin/env zsh
+
+#	-----------------------------------------
+#		MAKE TERMINAL BETTER
+#	-----------------------------------------
+alias ls='ls --grid'
+alias l='ls --long --header'
+alias la='ls --long --all --header'
+alias laz='ls --long --all --header --context'
+alias lao='ls --long --all --header --octal-permissions'
+alias cp='nocorrect cp -iv'
+alias mv='nocorrect mv -iv'
+alias mkdir='nocorrect mkdir -pv'
+alias rm='rm -v'
+alias mkcd='take'
+
+alias cd..='cd ../'
+alias ..='cd ../'
+alias ...='cd ../../'
+alias path='echo -e ${PATH//:/\\n}'
+alias fpath='echo -e ${FPATH//:/\\n}'
+alias completions='echo $fpath | sed -e "s/ /\n/g" | sort'
+
+[[ ! "$OSTYPE" == *bsd* ]] && alias df="df -h -x overlay -x tmpfs"
+alias du="du -ch"
+alias du1="du -chd1"
+
+alias reload="exec zsh"
+alias ssh0="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+alias ygui="true"
+
+#	---------------------------------------
+#		MAKE GIT GREAT AGAIN
+#	---------------------------------------
+alias s='git status'
+alias add='git add'
+alias commit="git commit"
+
+#	---------------------------------------
+#		MAKE NETWORKING GREAT AGAIN
+#	---------------------------------------
+alias myip='curl -4 icanhazip.com; curl -6 icanhazip.com'
+alias ips="ip a s | grep 'inet ' | awk '{print \$2}' | cut -f1 -d'/' | sort"
+alias ip6s='ip6 a s | grep '\''inet6 '\'' | grep -v '\''fe80::'\'' | awk '\''{print $2}'\'' | cut -f1 -d'\''/'\'' | sort'
+alias ip4="ip -4"
+alias ip6="ip -6"
+alias dig4="dig -4"
+alias dig6="dig -6"
+
+#	---------------------------------------
+#		MAKE DOCKER GREAT AGAIN
+#	---------------------------------------
+alias dk='docker kill $(docker ps -q)'
+
+#	---------------------------------------
+#		MAKE KUBECTX GREAT AGAIN
+#	---------------------------------------
+alias kctx='kubectx'
+alias kns='kubens'
+
+#	---------------------------------------
+#		MAKE MACOS GREAT AGAIN
+#	---------------------------------------
+alias flushDNS='sudo killall -HUP mDNSResponder'
+alias cleanupDS="find . -type f -name '*.DS_Store' -ls -delete"
+```

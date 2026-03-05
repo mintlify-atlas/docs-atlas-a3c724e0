@@ -1,0 +1,166 @@
+---
+title: Introduction
+description: A modern, curated dotfiles collection for Zsh with powerful tools and beautiful aesthetics
+---
+
+## What are Dotfiles?
+
+Dotfiles are configuration files that customize your development environment. They're called "dotfiles" because they typically start with a dot (`.`) and are hidden by default on Unix-based systems. These files control everything from your shell prompt to your Git aliases to your terminal colors.
+
+This dotfiles repository provides a pre-configured, batteries-included setup that transforms your terminal into a powerful, beautiful, and efficient development environment.
+
+## Why Use These Dotfiles?
+
+<CardGroup cols={2}>
+  <Card title="Pre-configured Tools" icon="toolbox">
+    Get up and running quickly with carefully selected and configured tools including Oh My Zsh, Powerlevel10k, and modern CLI replacements
+  </Card>
+  <Card title="Beautiful Terminal" icon="sparkles">
+    Enjoy a stunning terminal experience with the Powerlevel10k theme, custom color schemes, and enhanced syntax highlighting
+  </Card>
+  <Card title="Enhanced Productivity" icon="rocket">
+    Boost your productivity with intelligent autosuggestions, advanced Git aliases, and optimized shell plugins
+  </Card>
+  <Card title="Cross-Platform Support" icon="laptop">
+    Works seamlessly on macOS and Linux with platform-specific optimizations
+  </Card>
+</CardGroup>
+
+## What's Included?
+
+### Core Components
+
+The dotfiles include carefully curated configurations for:
+
+- **Zsh Shell** - Modern shell with advanced features
+- **Oh My Zsh** - Framework for managing Zsh configuration
+- **Powerlevel10k** - Beautiful and fast prompt theme
+- **Git Configuration** - Enhanced Git aliases and settings
+
+### Modern CLI Tools
+
+Replace traditional Unix commands with modern alternatives:
+
+<Steps>
+  <Step title="eza">
+    Modern replacement for `ls` with Git integration, icons, and tree views
+  </Step>
+  <Step title="bat">
+    Cat clone with syntax highlighting and Git integration
+  </Step>
+  <Step title="atuin">
+    Magical shell history with sync, search, and statistics
+  </Step>
+</Steps>
+
+### Zsh Plugins
+
+The configuration includes essential plugins for enhanced shell experience:
+
+```zsh .zshrc
+plugins=(
+	aliases
+	colored-man-pages
+	docker
+	docker-compose
+	gh
+	git
+	gitignore
+	helm
+	kubectl
+	kubectx
+	pip
+	poetry
+	sudo
+	yarn
+	zsh-autosuggestions
+	zsh-completions
+	zsh-syntax-highlighting
+)
+```
+
+### Git Enhancements
+
+Powerful Git aliases for common workflows:
+
+```gitconfig .gitconfig
+[alias]
+	graph = log --oneline --graph --decorate
+	ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
+	recent-branches = !git branch --sort=-committerdate | head
+	prune-branches = !git remote prune origin && git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -D
+```
+
+## How It Works
+
+The dotfiles use a smart bootstrap script that:
+
+1. **Installs dependencies** - Automatically installs Oh My Zsh, Powerlevel10k, and modern CLI tools
+2. **Syncs configurations** - Uses rsync to copy dotfiles to your home directory
+3. **Handles updates** - Provides commands to upgrade all tools and sync changes
+4. **Preserves customizations** - Uses `.local` files for personal settings that won't be overwritten
+
+<Note>
+The bootstrap script is interactive by default, asking for confirmation before each installation step. Use the `--force` flag for unattended installation.
+</Note>
+
+## Key Features
+
+### Intelligent File Sync
+
+The sync process intelligently excludes certain files and includes others based on your platform:
+
+```bash bootstrap.sh
+rsync \
+	--exclude ".git/" \
+	--exclude "scripts/" \
+	--exclude ".DS_Store" \
+	--exclude "bootstrap.sh" \
+	--include ".local/" \
+	--exclude "*.local" \
+	-avh --no-perms . ~;
+```
+
+### Local Customization
+
+Dotfiles that end in `.local` are excluded from syncing, allowing you to maintain personal settings:
+
+- `.zshrc.local` - Personal Zsh configuration
+- `.zshenv.local` - Environment variables
+- `.gitconfig.local` - Git user information
+
+<Tip>
+Use `.local` files to store sensitive information like API keys or personal preferences that shouldn't be synced from the repository.
+</Tip>
+
+### Modern Command Aliases
+
+Once installed, traditional commands are automatically replaced with modern alternatives:
+
+- `ls` → `eza` (modern file listing with Git status)
+- `cat` → `bat` (syntax-highlighted file viewing)
+- `df` → `duf` (disk usage with better formatting)
+
+## Platform Support
+
+<Info>
+The dotfiles are designed to work on both macOS and Linux, with platform-specific features automatically enabled based on your system.
+</Info>
+
+**macOS-specific features:**
+- Homebrew integration for package management
+- Additional tools like `kubectl`, `kubectx`, and `n` (Node version manager)
+- Library folder syncing for macOS-specific configurations
+
+**Linux-specific features:**
+- APT and DNF package manager support
+- Manual installation of tools from GitHub releases
+- Optimized for common Linux distributions
+
+## Next Steps
+
+Ready to transform your terminal? Head over to the [Installation Guide](/installation) to get started, or check out the [Quick Start](/quickstart) for a rapid setup guide.
+
+<Warning>
+Before installing, note that the sync process will overwrite existing dotfiles in your home directory. Make sure to backup any important configurations first.
+</Warning>

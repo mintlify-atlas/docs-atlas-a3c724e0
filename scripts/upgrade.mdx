@@ -1,0 +1,551 @@
+---
+title: Upgrading Tools
+description: How to upgrade installed tools and keep your development environment up to date
+---
+
+The dotfiles system provides flexible upgrade mechanisms for keeping all tools at their latest versions.
+
+## Upgrade All Tools
+
+The simplest way to upgrade everything:
+
+<Steps>
+  <Step title="Run Upgrade Command">
+    ```bash
+    cd ~/.dotfiles
+    ./bootstrap.sh --upgrade
+    ```
+  </Step>
+
+  <Step title="Automatic Processing">
+    The script will:
+    - Sync dotfiles from the repository
+    - Check each tool for available updates
+    - Upgrade tools that have newer versions
+    - Sync dotfiles again to apply any configuration changes
+  </Step>
+
+  <Step title="Review Output">
+    Each tool will show its upgrade status:
+    
+    ```
+    >> Upgrading atuin
+    >> Done
+    
+    >> Upgrading bat
+    >> Done
+    ```
+  </Step>
+</Steps>
+
+## Upgrade a Single Tool
+
+To upgrade only a specific tool:
+
+```bash
+./bootstrap.sh --upgrade <tool-name>
+```
+
+### Examples
+
+<CodeGroup>
+```bash Upgrade Atuin
+./bootstrap.sh --upgrade atuin
+# or
+./bootstrap.sh -u atuin
+```
+
+```bash Upgrade Bat
+./bootstrap.sh --upgrade bat
+```
+
+```bash Upgrade Eza
+./bootstrap.sh --upgrade eza
+```
+
+```bash Upgrade Oh My Zsh
+./bootstrap.sh --upgrade oh_my_zsh
+```
+</CodeGroup>
+
+## Manual Tool Upgrades
+
+You can also run upgrade scripts directly:
+
+```bash
+# Navigate to dotfiles directory
+cd ~/.dotfiles
+
+# Upgrade a specific tool
+zsh ./scripts/atuin.zsh upgrade
+zsh ./scripts/bat.zsh upgrade
+zsh ./scripts/eza.zsh upgrade
+```
+
+<Note>
+Manual upgrades don't sync dotfiles automatically. Run `./bootstrap.sh --sync` afterward if needed.
+</Note>
+
+## Upgrade Strategies by Tool Type
+
+### GitHub Release Tools
+
+Tools like `atuin`, `eza`, `yq`, and `step` check their current version against the latest GitHub release.
+
+**Upgrade Process**:
+
+<Steps>
+  <Step title="Fetch Latest Version">
+    Query GitHub API for the latest release:
+
+    ```zsh
+    _atuin_latest_version=$(curl -s https://api.github.com/repos/atuinsh/atuin/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+    ```
+  </Step>
+
+  <Step title="Get Current Version">
+    Check the installed version:
+
+    ```zsh
+    _atuin_version=$(atuin --version | sed -n '1p' | awk '{print $2}')
+    ```
+  </Step>
+
+  <Step title="Compare Versions">
+    Only upgrade if versions differ:
+
+    ```zsh
+    _atuin_latest_version_no_prefix="${_atuin_latest_version#v}"
+    
+    if [[ "${_atuin_latest_version_no_prefix}" == "${_atuin_version}" ]]; then
+        return  # Already up to date
+    fi
+    ```
+  </Step>
+
+  <Step title="Download and Install">
+    Download the new version and install it:
+
+    ```zsh
+    _tmpdir=$(mktemp -d)
+    cd "$_tmpdir" || exit
+    
+    curl -sL "https://github.com/atuinsh/atuin/releases/download/${_atuin_latest_version}/atuin-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+    sudo install -o root -g root -m 0755 atuin-x86_64-unknown-linux-gnu/atuin /usr/local/bin/atuin
+    ```
+  </Step>
+</Steps>
+
+**Tools Using This Strategy**:
+- `atuin` (scripts/atuin.zsh:36)
+- `eza` (scripts/eza.zsh:36)
+- `yq` (scripts/yq.zsh:36)
+- `step` (scripts/step.zsh:59)
+
+### Package Manager Tools
+
+Tools installed via package managers (Homebrew, apt, dnf) delegate upgrades to the system.
+
+**macOS (Homebrew)**:
+
+```zsh
+function upgrade() {
+	if command_exists -v bat; then
+		# upgrade is handled by the package manager
+		return
+	else
+		install
+	fi
+}
+```
+
+<Note>
+On macOS, run `brew upgrade` periodically to update all Homebrew packages including dotfile tools.
+</Note>
+
+**Linux**:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get update && sudo apt-get upgrade
+
+# Fedora
+sudo dnf upgrade
+```
+
+**Tools Using This Strategy**:
+- `bat`
+- `httpie`
+
+### Git Repository Tools
+
+Tools installed from Git repositories (Oh My Zsh, Powerlevel10k, plugins) use `git pull`.
+
+**Upgrade Process**:
+
+```zsh
+function upgrade() {
+	if [ ! -d "${DIR}" ]; then
+		install
+	else
+		cd "${DIR}" || exit
+		git pull --ff-only --quiet
+		cd - || exit
+		return
+	fi
+}
+```
+
+<CodeGroup>
+```bash Oh My Zsh
+# Uses built-in upgrade script
+env ZSH="${ZSH}" sh "${ZSH}/tools/upgrade.sh"
+command rm -rf "${ZSH}/log/update.lock"
+```
+
+```bash Powerlevel10k
+cd ~/.oh-my-zsh/custom/themes/powerlevel10k
+git pull --ff-only --quiet
+```
+
+```bash Nanorc
+cd ~/.nano
+git pull --ff-only --quiet
+```
+</CodeGroup>
+
+**Tools Using This Strategy**:
+- `oh_my_zsh` (scripts/oh_my_zsh.zsh:14)
+- `powerlevel10k` (scripts/powerlevel10k.zsh:14)
+- `nanorc` (scripts/nanorc.zsh:14)
+- `zsh_autosuggestions`
+- `zsh_completions`
+- `zsh_syntax_highlighting`
+
+## Upgrade Workflow
+
+The complete upgrade workflow when running `./bootstrap.sh --upgrade`:
+
+<Steps>
+  <Step title="Initial Sync">
+    ```zsh
+    syncDotfiles;
+    ```
+    
+    Syncs the latest dotfiles from the repository to your home directory.
+  </Step>
+
+  <Step title="Tool Upgrades">
+    For each tool in the scripts array:
+
+    ```zsh
+    for script in "${scripts[@]}";
+    do
+        upgrade "${script}"
+    done
+    ```
+    
+    Calls the upgrade function for each tool.
+  </Step>
+
+  <Step title="Final Sync">
+    ```zsh
+    syncDotfiles;
+    ```
+    
+    Syncs dotfiles again to apply any configuration changes from upgraded tools.
+  </Step>
+
+  <Step title="Success Message">
+    Displays the completion banner:
+
+    ```
+             __      __  _____ __
+        ____/ /___  / /_/ __(_) /__  _____
+       / __  / __ \/ __/ /_/ / / _ \/ ___/
+     _/ /_/ / /_/ / /_/ __/ / /  __(__  )
+    (_)__,_/\____/\__/_/ /_/_/\___/____/
+    
+    Hooray! .dotfiles has been updated and/or is at the current version.
+    ```
+  </Step>
+</Steps>
+
+## Upgrade Safety
+
+### Fast-Forward Only
+
+Git-based tools use `--ff-only` to prevent merge conflicts:
+
+```zsh
+git pull --ff-only --quiet
+```
+
+<Warning>
+If fast-forward fails, you may have local modifications. The upgrade will fail safely without losing changes.
+</Warning>
+
+### Version Comparison
+
+GitHub release tools compare versions before downloading:
+
+```zsh
+if [[ "${_eza_latest_version}" == "${_eza_version}" ]]; then
+	return  # Skip upgrade if already current
+fi
+```
+
+This prevents:
+- Unnecessary downloads
+- Bandwidth waste
+- Service interruption
+
+### Fallback to Install
+
+If a tool isn't installed, upgrade attempts installation:
+
+```zsh
+function upgrade() {
+	if command_exists -v tool; then
+		# Upgrade logic
+	else
+		install  # Not installed, so install it
+	fi
+}
+```
+
+## Error Handling
+
+The bootstrap script catches and reports upgrade errors:
+
+```zsh
+function upgrade() {
+	echo "${BOLD}${BLUE}>> Upgrading ${1}${RESET}"
+	if zsh ./scripts/"$1".zsh upgrade; then
+		echo "${GREEN}>> Done${RESET}"
+	else
+		echo "${RED}>> An error occured when upgrading ${1}, please check manually${RESET}"
+	fi
+}
+```
+
+<Note>
+Upgrade errors for one tool don't stop the upgrade process for other tools. Each tool upgrade is independent.
+</Note>
+
+## Platform-Specific Upgrades
+
+### macOS Only
+
+Some tools are only upgraded on macOS:
+
+```zsh
+if [[ "${_uname}" == "Darwin" ]]; then
+	scripts+=(
+		kubectl
+		kubectx
+		n
+	)
+fi
+```
+
+### Linux Distributions
+
+Upgrade methods vary by package manager:
+
+<CodeGroup>
+```bash Debian/Ubuntu
+if command_exists -v dpkg; then
+	curl -sLO "https://example.com/tool_${version}_amd64.deb"
+	sudo dpkg -i "tool_${version}_amd64.deb"
+fi
+```
+
+```bash Fedora/RHEL
+elif command_exists -v dnf; then
+	curl -sLO "https://example.com/tool-${version}.x86_64.rpm"
+	sudo dnf install "tool-${version}.x86_64.rpm"
+fi
+```
+</CodeGroup>
+
+## Architecture Support
+
+Some tools detect and support multiple architectures:
+
+```zsh
+_arch="x86_64"
+if [[ "$(uname -m)" == "aarch64" ]]; then
+	_arch="aarch64"
+fi
+
+# Download appropriate binary
+curl -sL "https://example.com/tool-${version}-${_arch}.tar.gz" | tar -xz
+```
+
+**Supported Architectures**:
+- `x86_64` / `amd64` (Intel/AMD 64-bit)
+- `aarch64` / `arm64` (ARM 64-bit)
+
+## Upgrade Schedule Recommendations
+
+<Steps>
+  <Step title="Weekly">
+    Upgrade all tools weekly for security and feature updates:
+
+    ```bash
+    cd ~/.dotfiles && ./bootstrap.sh --upgrade
+    ```
+  </Step>
+
+  <Step title="Before Important Work">
+    Sync dotfiles (without upgrading) before starting important projects:
+
+    ```bash
+    ./bootstrap.sh --sync
+    ```
+  </Step>
+
+  <Step title="After Major Releases">
+    Upgrade specific tools immediately after major releases:
+
+    ```bash
+    ./bootstrap.sh --upgrade atuin  # New release announced
+    ```
+  </Step>
+
+  <Step title="Git Repository Pulls">
+    Pull the dotfiles repository regularly to get script updates:
+
+    ```bash
+    cd ~/.dotfiles
+    git pull origin main
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting Upgrades
+
+### Upgrade Fails with Version Mismatch
+
+Some tools have version string parsing issues. Check manually:
+
+```bash
+# Check current version
+atuin --version
+yq --version
+step version
+
+# Check latest version
+curl -s https://api.github.com/repos/atuinsh/atuin/releases/latest | grep tag_name
+```
+
+### Git Pull Fails
+
+If git-based upgrades fail:
+
+```bash
+# Check for local modifications
+cd ~/.oh-my-zsh
+git status
+
+# Stash changes if needed
+git stash
+git pull --ff-only
+git stash pop
+```
+
+### Permission Denied
+
+If sudo is required but fails:
+
+```bash
+# Ensure you have sudo privileges
+sudo -v
+
+# Check file ownership
+ls -l /usr/local/bin/atuin
+
+# Manually fix permissions if needed
+sudo chown root:root /usr/local/bin/atuin
+sudo chmod 755 /usr/local/bin/atuin
+```
+
+### Package Manager Issues
+
+<CodeGroup>
+```bash Homebrew Not Found
+# Install Homebrew first
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+```bash APT Lock
+# Wait for other apt processes
+sudo fuser -vki /var/lib/dpkg/lock-frontend
+sudo dpkg --configure -a
+```
+
+```bash DNF Cache
+# Clear DNF cache
+sudo dnf clean all
+sudo dnf makecache
+```
+</CodeGroup>
+
+## Upgrade Examples
+
+### Complete System Upgrade
+
+```bash
+# Update package repositories
+# Debian/Ubuntu
+sudo apt-get update
+
+# Fedora
+sudo dnf check-update
+
+# macOS
+brew update
+
+# Upgrade system packages
+sudo apt-get upgrade    # Debian/Ubuntu
+sudo dnf upgrade        # Fedora  
+brew upgrade           # macOS
+
+# Upgrade dotfiles tools
+cd ~/.dotfiles
+git pull origin main
+./bootstrap.sh --upgrade
+
+# Restart shell to apply changes
+exec zsh
+```
+
+### Selective Upgrades
+
+```bash
+# Upgrade only CLI tools (not Zsh plugins)
+./bootstrap.sh --upgrade atuin
+./bootstrap.sh --upgrade bat
+./bootstrap.sh --upgrade eza
+./bootstrap.sh --upgrade yq
+
+# Upgrade only Zsh components
+./bootstrap.sh --upgrade oh_my_zsh
+./bootstrap.sh --upgrade powerlevel10k
+./bootstrap.sh --upgrade zsh_autosuggestions
+./bootstrap.sh --upgrade zsh_syntax_highlighting
+```
+
+### Automated Upgrades
+
+Create a cron job or systemd timer for automatic upgrades:
+
+```bash
+# Add to crontab (weekly on Sunday at 2am)
+0 2 * * 0 cd ~/.dotfiles && git pull origin main && ./bootstrap.sh --upgrade > /tmp/dotfiles-upgrade.log 2>&1
+```
+
+<Warning>
+Automated upgrades can occasionally break configurations. Review logs and test in a non-production environment first.
+</Warning>

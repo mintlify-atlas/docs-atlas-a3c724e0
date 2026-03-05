@@ -1,0 +1,750 @@
+---
+title: 'Oh My Zsh'
+description: 'An open-source framework for managing Zsh configuration'
+icon: 'terminal'
+---
+
+Oh My Zsh is a delightful, open-source, community-driven framework for managing your Zsh configuration. It comes bundled with thousands of helpful functions, helpers, plugins, and themes that make working with Zsh more productive and enjoyable.
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Plugin System" icon="puzzle-piece">
+    200+ plugins for Git, Docker, Kubernetes, and more
+  </Card>
+  
+  <Card title="Theme Support" icon="palette">
+    140+ themes to customize your prompt appearance
+  </Card>
+  
+  <Card title="Auto-Updates" icon="arrows-rotate">
+    Built-in update mechanism for framework and plugins
+  </Card>
+  
+  <Card title="Aliases & Functions" icon="code">
+    Hundreds of useful shortcuts and helper functions
+  </Card>
+</CardGroup>
+
+## Installation
+
+```bash
+# Using the dotfiles bootstrap script
+./bootstrap.sh
+
+# Or install manually
+zsh scripts/oh_my_zsh.zsh install
+```
+
+The installation script clones Oh My Zsh into your home directory:
+
+```bash
+# Installation location
+~/.oh-my-zsh
+```
+
+<Info>
+Oh My Zsh requires Zsh 5.0.8 or more recent. On macOS, Zsh is the default shell. On Linux, install it via your package manager: `apt install zsh` or `dnf install zsh`.
+</Info>
+
+## Configuration
+
+### Main Configuration File
+
+Oh My Zsh is configured in `.zshrc`:
+
+```bash
+# Theme selection
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# History timestamp format
+HIST_STAMPS="dd.mm.yyyy"
+
+# Enable plugins
+plugins=(
+  aliases
+  colored-man-pages
+  docker
+  docker-compose
+  gh
+  git
+  gitignore
+  helm
+  kubectl
+  kubectx
+  pip
+  poetry
+  projects
+  sublime
+  sudo
+  yarn
+  zsh-autosuggestions
+  zsh-completions
+  zsh-syntax-highlighting
+)
+
+# Initialize Oh My Zsh
+source "${ZSH}"/oh-my-zsh.sh
+```
+
+### Environment Variable
+
+The `$ZSH` environment variable points to the Oh My Zsh directory:
+
+```bash
+# Set in .zshenv or automatically by Oh My Zsh
+export ZSH="${HOME}/.oh-my-zsh"
+```
+
+## Plugins
+
+### Enabled Plugins
+
+The dotfiles configuration enables a curated set of useful plugins:
+
+#### Development Tools
+
+```bash
+git                 # Git aliases and functions
+gh                  # GitHub CLI completions
+gitignore           # gitignore.io integration
+docker              # Docker completions and aliases
+docker-compose      # Docker Compose completions
+kubectl             # Kubernetes completions
+kubectx             # kubectx/kubens completions
+helm                # Helm completions
+```
+
+#### Language & Package Managers
+
+```bash
+pip                 # Python pip completions
+poetry              # Poetry completions
+yarn                # Yarn completions
+```
+
+#### Productivity
+
+```bash
+aliases             # Alias management commands
+colored-man-pages   # Colorized man pages
+sudo                # ESC ESC to prefix sudo
+sublime             # Sublime Text integration
+projects            # Project management
+```
+
+#### Zsh Enhancements
+
+```bash
+zsh-autosuggestions     # Command suggestions
+zsh-completions         # Additional completions
+zsh-syntax-highlighting # Real-time syntax highlighting
+```
+
+### Plugin Highlights
+
+#### Git Plugin
+
+The Git plugin provides numerous aliases:
+
+```bash
+# Status and info
+gst     # git status
+gd      # git diff
+gds     # git diff --staged
+gl      # git pull
+gp      # git push
+
+# Branching
+gb      # git branch
+gba     # git branch -a
+gco     # git checkout
+gcb     # git checkout -b
+
+# Committing
+gc      # git commit -v
+gca     # git commit -v -a
+gcam    # git commit -a -m
+gcmsg   # git commit -m
+
+# Logs
+glog    # git log --oneline --decorate --graph
+gloga   # git log --oneline --decorate --graph --all
+
+# And many more...
+```
+
+<Tip>
+Type `alias | grep git` to see all available Git aliases, or run `aliases` to explore all Oh My Zsh aliases.
+</Tip>
+
+#### Sudo Plugin
+
+Press `ESC` twice to add `sudo` to the beginning of the current command:
+
+```bash
+# Type a command
+apt update
+
+# Press ESC ESC
+# Becomes
+sudo apt update
+```
+
+#### Docker Plugin
+
+Docker completions and aliases:
+
+```bash
+# Container management
+dps     # docker ps
+dpsa    # docker ps -a
+dstart  # docker start
+dstop   # docker stop
+drm     # docker rm
+
+# Image management
+di      # docker images
+drmi    # docker rmi
+dbuild  # docker build
+
+# Docker Compose
+dcup    # docker-compose up
+dcdown  # docker-compose down
+dclogs  # docker-compose logs
+```
+
+#### Kubectl Plugin
+
+Kubernetes command completions and aliases:
+
+```bash
+# Basic commands
+k       # kubectl
+kg      # kubectl get
+kd      # kubectl describe
+kdel    # kubectl delete
+
+# Pods
+kgp     # kubectl get pods
+kdp     # kubectl describe pod
+kgpa    # kubectl get pods --all-namespaces
+
+# Services
+kgs     # kubectl get services
+kds     # kubectl describe service
+
+# And many more...
+```
+
+### Custom Plugins
+
+Oh My Zsh supports custom plugins in the custom directory:
+
+```bash
+# Custom plugin location
+${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/
+```
+
+The dotfiles install custom plugins:
+
+```bash
+# zsh-autosuggestions
+${ZSH_CUSTOM}/plugins/zsh-autosuggestions
+
+# zsh-syntax-highlighting
+${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
+
+# zsh-completions
+${ZSH_CUSTOM}/plugins/zsh-completions
+```
+
+## Themes
+
+### Current Theme
+
+The dotfiles use Powerlevel10k:
+
+```bash
+# In .zshrc
+ZSH_THEME="powerlevel10k/powerlevel10k"
+```
+
+<Note>
+Powerlevel10k is installed as a custom theme and must be installed separately. See the [Powerlevel10k documentation](/tools/powerlevel10k) for details.
+</Note>
+
+### Built-in Themes
+
+Oh My Zsh includes 140+ built-in themes:
+
+```bash
+# Theme location
+~/.oh-my-zsh/themes/
+
+# Popular themes
+agnoster      # Popular prompt with Git status
+robbyrussell  # Default theme (simple and fast)
+powerlevel10k # Advanced theme (custom installation)
+pure          # Minimal and fast
+spaceship     # Customizable prompt
+```
+
+### Changing Themes
+
+Edit the `ZSH_THEME` variable in `.zshrc`:
+
+```bash
+# Try a different theme
+ZSH_THEME="agnoster"
+
+# Random theme on each start
+ZSH_THEME="random"
+
+# Reload Zsh
+source ~/.zshrc
+```
+
+### Custom Themes
+
+Install custom themes to:
+
+```bash
+${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/
+```
+
+## Customization
+
+### Local Configuration
+
+Create `.zshrc.local` for machine-specific settings:
+
+```bash
+# .zshrc.local - Loaded at the end of .zshrc
+export CUSTOM_VAR="value"
+
+# Custom aliases
+alias myproject="cd ~/projects/myproject"
+
+# Environment-specific settings
+export AWS_PROFILE="dev"
+```
+
+<Info>
+The dotfiles automatically source `.zshrc.local` if it exists, allowing you to keep machine-specific configuration separate from the main config.
+</Info>
+
+### Custom Aliases
+
+Create custom aliases for your workflow:
+
+```bash
+# In .zshrc.local or .zshrc
+
+# Quick navigation
+alias projects="cd ~/projects"
+alias dotfiles="cd ~/dotfiles"
+
+# Git shortcuts
+alias gs="git status"
+alias gpl="git pull"
+alias gps="git push"
+
+# Docker shortcuts
+alias dcu="docker-compose up"
+alias dcd="docker-compose down"
+
+# Custom commands
+alias update-all="brew update && brew upgrade && omz update"
+```
+
+### Custom Functions
+
+Add helper functions:
+
+```bash
+# In .zshrc.local
+
+# Create and enter directory
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+# Quick Git commit
+gquick() {
+  git add . && git commit -m "$1" && git push
+}
+
+# Extract archives
+extract() {
+  if [ -f $1 ]; then
+    case $1 in
+      *.tar.bz2) tar xjf $1 ;;
+      *.tar.gz) tar xzf $1 ;;
+      *.zip) unzip $1 ;;
+      *.7z) 7z x $1 ;;
+      *) echo "'$1' cannot be extracted" ;;
+    esac
+  fi
+}
+```
+
+## Additional Configuration
+
+### History Settings
+
+Configure command history:
+
+```bash
+# In .zshrc
+
+# History file location
+HISTFILE=~/.zsh_history
+
+# History size
+HISTSIZE=10000
+SAVEHIST=10000
+
+# History options
+setopt HIST_IGNORE_ALL_DUPS  # Remove duplicate entries
+setopt HIST_FIND_NO_DUPS     # Don't display duplicates
+setopt HIST_IGNORE_SPACE     # Don't save commands starting with space
+setopt SHARE_HISTORY         # Share history between sessions
+```
+
+### Completion Settings
+
+Enhanced completion system:
+
+```bash
+# In .zshrc
+
+# Enable completions
+autoload -Uz compinit && compinit -u
+autoload -U bashcompinit && bashcompinit
+
+# Completion options
+zstyle ':completion:*' menu select                    # Interactive menu
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # Case insensitive
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS} # Colored completions
+```
+
+### Additional Snippets
+
+Load additional configuration from a snippets directory:
+
+```bash
+# In .zshrc (included in dotfiles)
+for zshrc_snipplet in $XDG_CONFIG_HOME/zsh.d/S[0-9][0-9]*[^~] ; do
+    source "${zshrc_snipplet}"
+done
+```
+
+This loads all files matching the pattern from `~/.config/zsh.d/`:
+
+```bash
+# Create snippets directory
+mkdir -p ~/.config/zsh.d
+
+# Add numbered snippets
+~/.config/zsh.d/S10-custom-exports.zsh
+~/.config/zsh.d/S20-custom-aliases.zsh
+~/.config/zsh.d/S30-custom-functions.zsh
+```
+
+## Updating
+
+### Manual Update
+
+```bash
+# Update Oh My Zsh
+omz update
+
+# Force update
+omz update --unattended
+```
+
+### Using Update Script
+
+```bash
+# Update via dotfiles script
+zsh scripts/oh_my_zsh.zsh upgrade
+```
+
+<Note>
+Oh My Zsh automatically checks for updates every ~2 weeks and prompts you to update.
+</Note>
+
+### Disable Auto-Update Prompts
+
+```bash
+# In .zshrc
+zstyle ':omz:update' mode disabled
+```
+
+## Plugin Management
+
+### Enabling Plugins
+
+Add to the `plugins` array in `.zshrc`:
+
+```bash
+plugins=(
+  git
+  docker
+  # ... other plugins
+  new-plugin  # Add your plugin here
+)
+```
+
+### Installing Custom Plugins
+
+```bash
+# Clone to custom plugins directory
+git clone <plugin-repo> ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/<plugin-name>
+
+# Enable in .zshrc
+plugins=(... <plugin-name>)
+
+# Reload
+source ~/.zshrc
+```
+
+### Disabling Plugins
+
+Remove from the `plugins` array:
+
+```bash
+plugins=(
+  git
+  docker
+  # kubectl  # Commented out - disabled
+)
+```
+
+## Useful Commands
+
+### Oh My Zsh Commands
+
+```bash
+# Update Oh My Zsh
+omz update
+
+# Reload Zsh configuration
+omz reload
+
+# Check for updates
+omz update --check
+
+# Get Oh My Zsh version
+omz version
+
+# Change theme
+omz theme set <theme-name>
+
+# List available themes
+omz theme list
+
+# List available plugins
+omz plugin list
+
+# Enable a plugin
+omz plugin enable <plugin-name>
+
+# Disable a plugin
+omz plugin disable <plugin-name>
+```
+
+### Alias Management
+
+```bash
+# List all aliases
+alias
+
+# Search for aliases
+alias | grep git
+
+# List Oh My Zsh-specific aliases
+aliases
+
+# Get alias definition
+which <alias>
+```
+
+## Troubleshooting
+
+### Slow Shell Startup
+
+Profile your Zsh startup:
+
+```bash
+# Benchmark startup time
+time zsh -i -c exit
+
+# Enable profiling
+zmodload zsh/zprof
+# ... at top of .zshrc
+
+# Run profiling report at end of .zshrc
+zprof
+```
+
+Common causes:
+
+- Too many plugins enabled
+- Slow plugins (NVM, RVM, etc.)
+- Large completion system
+
+Solutions:
+
+```bash
+# Lazy-load slow tools
+function nvm() {
+  unset -f nvm
+  source ~/.nvm/nvm.sh
+  nvm "$@"
+}
+
+# Reduce plugin count
+# Disable unused completions
+```
+
+### Plugin Not Working
+
+Check if the plugin is:
+
+1. Listed in the `plugins` array
+2. Installed (for custom plugins)
+3. Compatible with your Zsh version
+
+```bash
+# Verify plugin is enabled
+echo $plugins
+
+# Check plugin exists
+ls ${ZSH}/plugins/<plugin-name>
+# or for custom
+ls ${ZSH_CUSTOM}/plugins/<plugin-name>
+```
+
+### Completion Not Working
+
+Rebuild completion cache:
+
+```bash
+# Remove completion cache
+rm ~/.zcompdump*
+
+# Reload Zsh
+source ~/.zshrc
+
+# Completions should rebuild automatically
+```
+
+## Tips and Best Practices
+
+<Tip>
+Keep your `.zshrc` organized by moving machine-specific configurations to `.zshrc.local` and using the `~/.config/zsh.d/` snippets directory for modular configuration.
+</Tip>
+
+### Performance Optimization
+
+```bash
+# Load plugins selectively based on available commands
+(( $+commands[docker] )) && plugins+=(docker)
+(( $+commands[kubectl] )) && plugins+=(kubectl)
+
+# Skip aliases you don't use
+zstyle ':omz:plugins:git' aliases no
+```
+
+### Backup Configuration
+
+```bash
+# Backup before making changes
+cp ~/.zshrc ~/.zshrc.backup
+
+# Version control your dotfiles
+cd ~ && git init
+git add .zshrc .zshrc.local
+git commit -m "Backup Zsh config"
+```
+
+### Explore New Plugins
+
+```bash
+# Browse available plugins
+ls ${ZSH}/plugins/
+
+# Read plugin documentation
+cat ${ZSH}/plugins/<plugin-name>/README.md
+
+# Try plugins temporarily (without editing .zshrc)
+source ${ZSH}/plugins/<plugin-name>/<plugin-name>.plugin.zsh
+```
+
+## Popular Plugin Combinations
+
+### Web Developer
+
+```bash
+plugins=(
+  git
+  npm
+  yarn
+  node
+  vscode
+  docker
+  docker-compose
+)
+```
+
+### DevOps Engineer
+
+```bash
+plugins=(
+  git
+  docker
+  docker-compose
+  kubectl
+  kubectx
+  helm
+  terraform
+  aws
+  gcloud
+)
+```
+
+### Python Developer
+
+```bash
+plugins=(
+  git
+  python
+  pip
+  poetry
+  virtualenv
+  django
+  docker
+)
+```
+
+## Resources
+
+- **Official Website**: [ohmyz.sh](https://ohmyz.sh)
+- **GitHub**: [ohmyzsh/ohmyzsh](https://github.com/ohmyzsh/ohmyzsh)
+- **Wiki**: Extensive documentation on GitHub
+- **Plugins Directory**: [github.com/ohmyzsh/ohmyzsh/tree/master/plugins](https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins)
+- **Themes Directory**: [github.com/ohmyzsh/ohmyzsh/tree/master/themes](https://github.com/ohmyzsh/ohmyzsh/tree/master/themes)
+
+## Related Tools
+
+<CardGroup cols={2}>
+  <Card title="Powerlevel10k" icon="rocket" href="/tools/powerlevel10k">
+    Fast and flexible Zsh theme
+  </Card>
+  
+  <Card title="All CLI Tools" icon="wrench" href="/tools/overview">
+    Explore other modern CLI tools
+  </Card>
+</CardGroup>

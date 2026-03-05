@@ -1,0 +1,259 @@
+---
+title: Environment & Shell Options
+description: Environment variables and shell options configuration
+---
+
+This page documents the environment variables and shell options configured in the dotfiles. These settings control shell behavior, locale, history management, and editor preferences.
+
+## Environment Variables
+
+<AccordionGroup>
+  <Accordion title="Locale Settings">
+    Configure language and character encoding for the shell environment.
+
+    | Variable | Value | Description |
+    |----------|-------|-------------|
+    | `LANG` | `en_US.UTF-8` | Primary language and encoding |
+    | `LC_ALL` | `en_US.UTF-8` | Override all locale settings |
+    | `LANGUAGE` | `en_US.UTF-8` | Language preference |
+
+    <Note>
+    UTF-8 encoding ensures proper display of international characters and emojis.
+    </Note>
+
+    ```bash
+    export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
+    export LANGUAGE=en_US.UTF-8
+    ```
+  </Accordion>
+
+  <Accordion title="History Configuration">
+    Shell history settings for extensive command history retention.
+
+    | Variable | Value | Description |
+    |----------|-------|-------------|
+    | `HISTFILESIZE` | `1000000000` | Maximum lines in history file |
+    | `HISTSIZE` | `1000000000` | Maximum commands in memory |
+    | `SAVEHIST` | `1000000000` | Commands to save to history file |
+
+    <Tip>
+    With 1 billion entries configured, you'll effectively never lose command history!
+    </Tip>
+
+    ```bash
+    export HISTFILESIZE=1000000000
+    export HISTSIZE=1000000000
+    export SAVEHIST=1000000000
+    ```
+  </Accordion>
+
+  <Accordion title="Editor Settings">
+    Default editor configuration for various tools.
+
+    | Variable | Value | Description |
+    |----------|-------|-------------|
+    | `EDITOR` | `vim` | Default text editor |
+    | `GIT_EDITOR` | `vim` | Editor for git commit messages |
+
+    ```bash
+    export EDITOR='vim'
+    export GIT_EDITOR='vim'
+    ```
+
+    **Common Usage:**
+    - Git commits will open in vim
+    - `crontab -e` will use vim
+    - Many CLI tools respect `$EDITOR`
+  </Accordion>
+
+  <Accordion title="Terminal & Display">
+    Configure terminal behavior and pager settings.
+
+    | Variable | Value | Description |
+    |----------|-------|-------------|
+    | `GPG_TTY` | `$(tty)` | Current TTY for GPG |
+    | `LESS` | `eFRX` | Less pager options |
+
+    **LESS Options Explained:**
+    - `e` - Automatically exit after reaching end of file twice
+    - `F` - Quit if entire file fits on one screen
+    - `R` - Display ANSI color escape sequences
+    - `X` - Don't clear screen on exit
+
+    ```bash
+    export GPG_TTY=$(tty)
+    export LESS=eFRX
+    ```
+  </Accordion>
+
+  <Accordion title="Tool-Specific Variables">
+    Configuration for specific tools and utilities.
+
+    | Variable | Value | Description |
+    |----------|-------|-------------|
+    | `GIT_RADAR_FETCH_TIME` | `30` | Git radar fetch interval (seconds) |
+    | `COMPOSER_ALLOW_SUPERUSER` | `1` | Allow Composer to run as root |
+
+    ```bash
+    export GIT_RADAR_FETCH_TIME=30
+    export COMPOSER_ALLOW_SUPERUSER=1
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Shell Options
+
+Zsh options that modify shell behavior for history management.
+
+<AccordionGroup>
+  <Accordion title="History Behavior Options">
+    Options controlling how commands are saved and recalled.
+
+    ### histignorespace
+
+    ```bash
+    setopt histignorespace
+    ```
+
+    **Description:**  
+    Commands beginning with a space are not added to history. Useful for sensitive commands.
+
+    **Example:**
+    ```bash
+    echo "saved to history"
+     echo "not saved (note leading space)"
+    ```
+
+    <Tip>
+    Use a leading space for commands containing passwords or sensitive data.
+    </Tip>
+
+    ---
+
+    ### histignorealldups
+
+    ```bash
+    setopt histignorealldups
+    ```
+
+    **Description:**  
+    If a command is a duplicate of a previous entry, the older entry is removed from history.
+
+    **Benefit:**  
+    Keeps history clean and makes searching more efficient.
+
+    ---
+
+    ### INC_APPEND_HISTORY
+
+    ```bash
+    setopt INC_APPEND_HISTORY
+    ```
+
+    **Description:**  
+    Commands are added to history file immediately after execution, not when shell exits.
+
+    **Benefit:**  
+    History is preserved even if shell crashes. Enables sharing history across concurrent sessions.
+
+    ---
+
+    ### HIST_REDUCE_BLANKS
+
+    ```bash
+    setopt HIST_REDUCE_BLANKS
+    ```
+
+    **Description:**  
+    Remove superfluous blank lines and spaces from commands before saving to history.
+
+    **Example:**
+    ```bash
+    # Command entered:
+    echo    "hello"    |    grep    hello
+
+    # Saved in history as:
+    echo "hello" | grep hello
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Complete Configuration Files
+
+<CodeGroup>
+```bash S03_variables
+#! /usr/bin/env zsh
+
+#	Shell settings
+#	------------------------------------------------------------------------
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export GPG_TTY=$(tty)
+
+export HISTFILESIZE=1000000000
+export HISTSIZE=1000000000
+export SAVEHIST=1000000000
+
+export EDITOR='vim'
+export GIT_EDITOR='vim'
+
+export GIT_RADAR_FETCH_TIME=30
+export LESS=eFRX
+
+export COMPOSER_ALLOW_SUPERUSER=1
+```
+
+```bash S01_options
+#! /usr/bin/env zsh
+
+# Remove command lines from the history list when the first character on the
+# line is a space, or when one of the expanded aliases contains a leading space
+setopt histignorespace
+
+# Do not enter command lines into the history list if they are duplicates of the
+# previous event.
+setopt histignorealldups
+
+# Immediately append to the history file, instead of waiting for the shell to
+# exit.
+setopt INC_APPEND_HISTORY
+
+# Remove superfluous blanks before recording entry.
+setopt HIST_REDUCE_BLANKS
+```
+</CodeGroup>
+
+## Configuration Loading Order
+
+The dotfiles use a numbered prefix system to control loading order:
+
+1. **S01_options** - Shell options loaded first
+2. **S03_variables** - Environment variables 
+3. **S10_aliases** - Command aliases
+4. **S20_functions** - Custom functions
+
+<Note>
+Files are sourced in alphabetical order by their prefix numbers, ensuring dependencies are loaded correctly.
+</Note>
+
+## Customization
+
+To customize these settings:
+
+1. Edit the configuration files in `~/.config/zsh.d/`
+2. Run `reload` (alias for `exec zsh`) to apply changes
+3. Settings are automatically loaded on new shell sessions
+
+**Example customization:**
+
+```bash
+# Add to S03_variables to change default editor
+export EDITOR='nvim'
+export GIT_EDITOR='nvim'
+
+# Add to S01_options for more history options
+setopt SHARE_HISTORY          # Share history between sessions
+setopt HIST_VERIFY            # Show command before executing from history
+```

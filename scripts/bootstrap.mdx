@@ -1,0 +1,407 @@
+---
+title: Bootstrap Script
+description: Main bootstrap.sh script that orchestrates dotfiles installation and tool setup
+---
+
+The `bootstrap.sh` script is the primary entry point for setting up the dotfiles environment. It handles tool installation, shell configuration, and dotfile synchronization.
+
+## Overview
+
+The bootstrap script provides an interactive installation experience with colored output, error handling, and flexible installation modes. It orchestrates the installation of multiple tools through individual script modules.
+
+## Usage
+
+<Steps>
+  <Step title="Interactive Mode (Default)">
+    Run the bootstrap script without arguments for an interactive installation:
+
+    ```bash
+    ./bootstrap.sh
+    ```
+
+    This mode prompts you to confirm each tool installation individually.
+  </Step>
+
+  <Step title="Force Install Mode">
+    Install all tools automatically without prompts:
+
+    ```bash
+    ./bootstrap.sh --force
+    # or
+    ./bootstrap.sh -f
+    ```
+
+    This mode sets `_FORCE_INSTALL=true` and installs all tools non-interactively.
+  </Step>
+
+  <Step title="Upgrade Mode">
+    Upgrade all installed tools or a specific tool:
+
+    ```bash
+    # Upgrade all tools
+    ./bootstrap.sh --upgrade
+    ./bootstrap.sh -u
+
+    # Upgrade a specific tool
+    ./bootstrap.sh --upgrade atuin
+    ./bootstrap.sh -u bat
+    ```
+  </Step>
+
+  <Step title="Sync Mode">
+    Only sync dotfiles without installing or upgrading tools:
+
+    ```bash
+    ./bootstrap.sh --sync
+    # or
+    ./bootstrap.sh -s
+    ```
+  </Step>
+</Steps>
+
+## Command-Line Options
+
+<ParamField path="--force | -f" type="flag">
+  Install all tools automatically without interactive prompts. Enables non-interactive package manager operations.
+</ParamField>
+
+<ParamField path="--upgrade | -u" type="flag">
+  Upgrade all installed tools. Can be followed by a tool name to upgrade only that specific tool.
+</ParamField>
+
+<ParamField path="--sync | -s" type="flag">
+  Synchronize dotfiles to the home directory without installing or upgrading tools.
+</ParamField>
+
+## Core Functions
+
+### syncDotfiles()
+
+Synchronizes dotfiles from the repository to your home directory using `rsync`.
+
+```zsh
+function syncDotfiles() {
+	echo "${BOLD}${BLUE}>> Syncing dotfiles${RESET}"
+	rsync \
+		--exclude ".git/" \
+		--exclude "scripts/" \
+		--exclude ".DS_Store" \
+		--exclude ".gitignore" \
+		--exclude "bootstrap.sh" \
+		--exclude "README.md" \
+		--exclude "LICENSE" \
+		--exclude "Rakefile" \
+		--include ".local/" \
+		--exclude "*.local" \
+		--exclude ".vscode/" \
+		--exclude "Library/" \
+		--exclude "macos_defaults" \
+		-avh --no-perms . ~;
+
+	if [[ "${_uname}" == "Darwin" ]]; then
+		for macOsDir in Library; do
+			rsync -avh --no-perms ${macOsDir} ~;
+		done
+	fi
+
+	source ~/.zshrc
+	source "${XDG_CONFIG_HOME}"/p10k.zsh
+}
+```
+
+<Note>
+The sync function excludes repository-specific files and local configuration overrides (*.local files) to preserve your custom settings.
+</Note>
+
+### switch_to_zsh()
+
+Changes the default shell to Zsh if not already set.
+
+```zsh
+function switch_to_zsh() {
+	if [ "$(basename "${SHELL}")" = "zsh" ]; then
+		return
+	else
+		if ! command_exists -v chsh; then
+			cat <<-EOF
+				>> I can't change your shell automatically because this system does not have chsh.
+				${BLUE}>> Please manually change your default shell to zsh${RESET}
+			EOF
+			return
+		fi
+
+		chsh -s $(which zsh)
+		return
+	fi
+}
+```
+
+### install()
+
+Installs a specific tool by calling its corresponding script.
+
+```zsh
+function install() {
+	if $2; then
+		echo "${BOLD}${BLUE}>> Installing ${1}${RESET}"
+		export _FORCE_INSTALL=true
+		if zsh ./scripts/"$1".zsh install; then
+			echo "${GREEN}>> Done${RESET}"
+		else
+			echo "${YELLOW}>> Already installed${RESET}"
+		fi
+	else
+		read "?Do you want to install ${1}? ${yes_no}"
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			echo "${BOLD}${BLUE}>> Installing ${1}${RESET}"
+			if zsh ./scripts/"$1".zsh install; then
+				echo "${GREEN}>> Done${RESET}"
+			else
+				echo "${YELLOW}>> Already installed${RESET}"
+			fi
+		elif [[ $REPLY =~ ^[Qq]$ ]]; then
+			quit
+		else
+			echo "${BLUE}>> Skipping ${1} installation${RESET}"
+		fi;
+	fi
+}
+```
+
+### upgrade()
+
+Upgrades a specific tool by calling its upgrade function.
+
+```zsh
+function upgrade() {
+	echo "${BOLD}${BLUE}>> Upgrading ${1}${RESET}"
+	if zsh ./scripts/"$1".zsh upgrade; then
+		echo "${GREEN}>> Done${RESET}"
+	else
+		echo "${RED}>> An error occured when upgrading ${1}, please check manually${RESET}"
+	fi
+}
+```
+
+## Managed Tools
+
+The bootstrap script manages the following tools:
+
+### Universal Tools (Linux & macOS)
+
+```zsh
+scripts=(
+	atuin           # Shell history manager
+	bat             # Cat clone with syntax highlighting
+	eza             # Modern ls replacement
+	ls_colors       # LS_COLORS configuration
+	nanorc          # Nano syntax highlighting
+	oh_my_zsh       # Zsh framework
+	powerlevel10k   # Zsh theme
+	step            # Smallstep CLI
+	yq              # YAML processor
+	zsh_autosuggestions
+	zsh_completions
+	zsh_syntax_highlighting
+)
+```
+
+### macOS-Specific Tools
+
+```zsh
+if [[ "${_uname}" == "Darwin" ]]; then
+	scripts+=(
+		kubectl     # Kubernetes CLI
+		kubectx     # Kubernetes context switcher
+		n           # Node.js version manager
+	)
+fi
+```
+
+## Color Output
+
+The script uses terminal colors for better readability:
+
+```zsh
+if which tput >/dev/null 2>&1; then
+    ncolors=$(tput colors)
+fi
+if [ -t 1 ] && [ -n "${ncolors}" ] && [ "${ncolors}" -ge 8 ]; then
+	RED="$(tput setaf 1)"
+	GREEN="$(tput setaf 2)"
+	YELLOW="$(tput setaf 3)"
+	BLUE="$(tput setaf 4)"
+	BOLD="$(tput bold)"
+	RESET="$(tput sgr0)"
+fi
+```
+
+## Environment Variables
+
+<ParamField path="_FORCE_INSTALL" type="boolean">
+  Set to `true` when using `--force` mode. Individual tool scripts check this variable to enable non-interactive installation.
+</ParamField>
+
+<ParamField path="DOTFILES" type="string">
+  Set to `$HOME/.dotfiles` if not already defined. Added to `~/.zshenv.local` for persistent configuration.
+</ParamField>
+
+## Interactive Prompts
+
+In interactive mode, the script presents the following prompt format:
+
+```
+Do you want to install [tool]? (y/n/q)
+```
+
+- **y**: Yes, install the tool
+- **n**: No, skip this tool
+- **q**: Quit the entire installation process
+
+<Warning>
+Pressing 'q' at any prompt will immediately exit the installation process. Any tools already installed will remain installed.
+</Warning>
+
+## Execution Flow
+
+<Steps>
+  <Step title="Initialize">
+    - Detect operating system (`uname -s`)
+    - Configure terminal colors
+    - Pull latest changes from git repository
+    - Set DOTFILES environment variable
+  </Step>
+
+  <Step title="Parse Arguments">
+    - Check for `--force/-f`, `--upgrade/-u`, or `--sync/-s` flags
+    - Branch to appropriate installation mode
+  </Step>
+
+  <Step title="Install/Upgrade Tools">
+    - Iterate through the scripts array
+    - Call install() or upgrade() for each tool
+    - Handle user prompts in interactive mode
+  </Step>
+
+  <Step title="Configure Shell">
+    - Prompt to switch to Zsh (if not already using it)
+    - Only in interactive or force mode
+  </Step>
+
+  <Step title="Sync Dotfiles">
+    - Prompt to sync dotfiles (interactive mode)
+    - Automatically sync in force/upgrade/sync modes
+    - Use rsync with exclusions
+  </Step>
+
+  <Step title="Complete">
+    - Display ASCII art banner
+    - Show success message
+    - Clean up temporary variables
+  </Step>
+</Steps>
+
+## Git Integration
+
+The bootstrap script automatically updates itself:
+
+```zsh
+cd "$(dirname "${(%):-%N}")";
+git pull origin main --ff-only --quiet
+```
+
+<Note>
+The script changes to its own directory and pulls the latest changes from the main branch using fast-forward only. This ensures you always run the latest version.
+</Note>
+
+## Examples
+
+### First-Time Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/ombratteng/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+
+# Run interactive installation
+./bootstrap.sh
+```
+
+### Automated CI/CD Setup
+
+```bash
+# Non-interactive installation for automation
+./bootstrap.sh --force
+```
+
+### Update Everything
+
+```bash
+# Pull latest dotfiles and upgrade all tools
+./bootstrap.sh --upgrade
+```
+
+### Update Single Tool
+
+```bash
+# Upgrade only atuin
+./bootstrap.sh --upgrade atuin
+```
+
+### Sync Configuration Only
+
+```bash
+# Update dotfiles without touching installed tools
+./bootstrap.sh --sync
+```
+
+## Error Handling
+
+The script includes helper functions for error handling:
+
+```zsh
+quit() {
+	echo "${BOLD}${YELLOW}>> Quitting${RESET}"
+	exit 1
+}
+
+command_exists() {
+	command -v "$@" >/dev/null 2>&1
+}
+```
+
+## Platform Detection
+
+The script detects the operating system to enable platform-specific behavior:
+
+```zsh
+_uname=$(uname -s)
+
+# macOS detection
+if [[ "${_uname}" == "Darwin" ]]; then
+	# macOS-specific code
+fi
+
+# Linux detection
+if [[ "${_uname:0:5}" == "Linux" ]]; then
+	# Linux-specific code
+fi
+```
+
+<Note>
+The `_uname` variable is unset at the end of the script to maintain a clean environment.
+</Note>
+
+## Success Banner
+
+Upon successful completion, the script displays:
+
+```
+         __      __  _____ __
+    ____/ /___  / /_/ __(_) /__  _____
+   / __  / __ \/ __/ /_/ / / _ \/ ___/
+ _/ /_/ / /_/ / /_/ __/ / /  __(__  )
+(_)__,_/\____/\__/_/ /_/_/\___/____/
+
+Hooray! .dotfiles has been updated and/or is at the current version.
+```

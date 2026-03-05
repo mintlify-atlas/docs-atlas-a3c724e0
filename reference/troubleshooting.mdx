@@ -1,0 +1,578 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for ombratteng/dotfiles
+---
+
+## Overview
+
+This guide covers common issues you might encounter while installing, configuring, or using the dotfiles, along with solutions and debugging strategies.
+
+<Info>
+Most issues can be resolved by ensuring prerequisites are installed and running the bootstrap script with the correct flags.
+</Info>
+
+## Installation Issues
+
+### Bootstrap Script Fails
+
+<AccordionGroup>
+  <Accordion title="Git Pull Fails">
+    **Symptom**: Bootstrap script fails at `git pull origin main --ff-only --quiet`
+
+    **Cause**: 
+    - Not in a git repository
+    - No internet connection
+    - Merge conflicts with local changes
+
+    **Solution**:
+    ```bash
+    # Check if you're in the dotfiles directory
+    cd ~/.dotfiles
+    
+    # Check git status
+    git status
+    
+    # Resolve conflicts or reset
+    git reset --hard origin/main
+    
+    # Pull again
+    git pull origin main --ff-only
+    ```
+
+    <Warning>
+    `git reset --hard` will discard local changes. Commit or stash changes first if needed.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Permission Denied Errors">
+    **Symptom**: `rsync: mkdir ... failed: Permission denied`
+
+    **Cause**: Insufficient permissions to write to home directory or system locations
+
+    **Solution**:
+    ```bash
+    # Check home directory permissions
+    ls -la ~ | head
+    
+    # Fix ownership if needed
+    sudo chown -R $(whoami) ~
+    
+    # Ensure bootstrap.sh is executable
+    chmod +x bootstrap.sh
+    ```
+  </Accordion>
+
+  <Accordion title="Script Installation Fails">
+    **Symptom**: Individual script installations fail or hang
+
+    **Cause**: Missing dependencies or network issues
+
+    **Solution**:
+    ```bash
+    # Run with verbose output
+    zsh -x ./bootstrap.sh
+    
+    # Install specific script manually
+    zsh ./scripts/oh_my_zsh.zsh install
+    
+    # Check for error messages
+    echo $?
+    ```
+
+    <Tip>
+    Use `--force` flag to skip confirmation prompts and force reinstallation.
+    </Tip>
+  </Accordion>
+</AccordionGroup>
+
+### Homebrew Issues
+
+<AccordionGroup>
+  <Accordion title="Homebrew Not Found">
+    **Symptom**: `brew: command not found`
+
+    **Cause**: Homebrew not installed or not in PATH
+
+    **Solution**:
+    ```bash
+    # Install Homebrew (macOS/Linux)
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Add to PATH (Apple Silicon Mac)
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    
+    # Add to PATH (Intel Mac)
+    echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+    eval "$(/usr/local/bin/brew shellenv)"
+    
+    # Verify installation
+    brew --version
+    ```
+  </Accordion>
+
+  <Accordion title="Brewfile Bundle Fails">
+    **Symptom**: `brew bundle` errors or package installation failures
+
+    **Cause**: 
+    - Outdated Homebrew
+    - Network issues
+    - Conflicting packages
+    - Cask or tap no longer available
+
+    **Solution**:
+    ```bash
+    # Update Homebrew
+    brew update
+    
+    # Check for issues
+    brew doctor
+    
+    # Install Brewfile packages individually
+    brew bundle install --file=~/.config/Brewfile --verbose
+    
+    # Skip failing packages
+    brew bundle install --file=~/.config/Brewfile --no-upgrade
+    ```
+
+    <Note>
+    Comment out problematic packages in the Brewfile and install them manually later.
+    </Note>
+  </Accordion>
+
+  <Accordion title="Mac App Store (mas) Issues">
+    **Symptom**: `mas install` fails or hangs
+
+    **Cause**: 
+    - Not signed into App Store
+    - Two-factor authentication required
+    - App not available in your region
+
+    **Solution**:
+    ```bash
+    # Check App Store sign-in
+    mas account
+    
+    # Sign in to App Store GUI first
+    open -a "App Store"
+    
+    # List installed apps
+    mas list
+    
+    # Try installing specific app
+    mas install 1569813296
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Shell Configuration Issues
+
+### Zsh Not Loading Correctly
+
+<AccordionGroup>
+  <Accordion title="Configuration Not Applied">
+    **Symptom**: Custom aliases, functions, or theme not working
+
+    **Cause**: 
+    - Configuration files not sourced
+    - Syntax errors in config files
+    - Wrong file permissions
+
+    **Solution**:
+    ```bash
+    # Check for syntax errors
+    zsh -n ~/.zshrc
+    
+    # Source configuration manually
+    source ~/.zshrc
+    
+    # Check file permissions
+    ls -la ~/.zsh*
+    
+    # Fix permissions if needed
+    chmod 644 ~/.zshrc ~/.zshenv
+    
+    # Check what's being loaded
+    zsh -xv 2>&1 | less
+    ```
+
+    <Tip>
+    Add `set -x` at the top of `~/.zshrc` temporarily to debug which lines are executing.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Oh My Zsh Not Found">
+    **Symptom**: `~/.oh-my-zsh not found` or theme errors
+
+    **Cause**: Oh My Zsh not installed or corrupted installation
+
+    **Solution**:
+    ```bash
+    # Check if Oh My Zsh exists
+    ls -la ~/.oh-my-zsh
+    
+    # Reinstall Oh My Zsh
+    zsh ./scripts/oh_my_zsh.zsh install
+    
+    # Or install manually
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    ```
+  </Accordion>
+
+  <Accordion title="Powerlevel10k Not Working">
+    **Symptom**: Broken icons, wrong prompt, or theme not loading
+
+    **Cause**: 
+    - Powerlevel10k not installed
+    - Nerd Font not installed
+    - Terminal not using Nerd Font
+
+    **Solution**:
+    ```bash
+    # Reinstall Powerlevel10k
+    zsh ./scripts/powerlevel10k.zsh install
+    
+    # Install Nerd Fonts via Homebrew
+    brew install --cask font-fira-code-nerd-font
+    
+    # Configure terminal to use Nerd Font
+    # Terminal.app: Preferences > Profiles > Text > Font
+    # iTerm2: Preferences > Profiles > Text > Font
+    
+    # Reconfigure Powerlevel10k
+    p10k configure
+    ```
+
+    <Warning>
+    Make sure your terminal emulator is set to use a Nerd Font, not just having the font installed.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+### Shell Switching Issues
+
+<AccordionGroup>
+  <Accordion title="Cannot Change Default Shell">
+    **Symptom**: `chsh` fails or shell doesn't change after login
+
+    **Cause**: 
+    - Zsh not in `/etc/shells`
+    - Insufficient permissions
+    - System restrictions
+
+    **Solution**:
+    ```bash
+    # Check current shell
+    echo $SHELL
+    
+    # Check available shells
+    cat /etc/shells
+    
+    # Add Zsh to shells list if missing
+    which zsh | sudo tee -a /etc/shells
+    
+    # Change shell
+    chsh -s $(which zsh)
+    
+    # Verify
+    grep $(whoami) /etc/passwd
+    ```
+
+    <Note>
+    You may need to log out and log back in for the shell change to take effect.
+    </Note>
+  </Accordion>
+
+  <Accordion title="chsh Command Not Found">
+    **Symptom**: System doesn't have `chsh` command
+
+    **Cause**: Some minimal systems don't include `chsh`
+
+    **Solution**:
+    - Contact your system administrator
+    - Edit `/etc/passwd` directly (requires root)
+    - Set `SHELL` environment variable in login scripts
+    - Use `exec zsh` in your current shell profile
+  </Accordion>
+</AccordionGroup>
+
+## Sync and Rsync Issues
+
+### File Sync Problems
+
+<AccordionGroup>
+  <Accordion title="Files Not Syncing">
+    **Symptom**: Configuration files not appearing in home directory
+
+    **Cause**: Rsync exclusions or incorrect source directory
+
+    **Solution**:
+    ```bash
+    # Check current directory
+    pwd
+    
+    # Should be in dotfiles directory
+    cd ~/.dotfiles
+    
+    # Run sync manually with verbose output
+    rsync -avh --dry-run --exclude ".git/" . ~
+    
+    # If looks good, run actual sync
+    ./bootstrap.sh --sync
+    ```
+
+    <Tip>
+    Use `--dry-run` flag to preview what rsync will do before making changes.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Existing Files Overwritten">
+    **Symptom**: Local customizations lost after sync
+
+    **Cause**: Rsync overwrites existing files without backup
+
+    **Solution**:
+    ```bash
+    # Backup existing config before syncing
+    cp ~/.zshrc ~/.zshrc.backup
+    cp -r ~/.config ~/.config.backup
+    
+    # Use rsync backup option
+    rsync -avh --backup --backup-dir=~/dotfiles-backup . ~
+    ```
+
+    <Warning>
+    Always backup custom configurations before running the bootstrap script.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="*.local Files Not Syncing">
+    **Symptom**: Local configuration files missing
+
+    **Cause**: `*.local` files are excluded by default in rsync
+
+    **Solution**:
+    Files ending in `.local` are intentionally excluded to prevent overwriting local-only configurations.
+
+    ```bash
+    # Create local configs manually
+    touch ~/.zshrc.local
+    echo 'export MY_VAR="value"' >> ~/.zshenv.local
+    ```
+
+    <Info>
+    `.local` files are for machine-specific configurations that shouldn't be synced or committed.
+    </Info>
+  </Accordion>
+</AccordionGroup>
+
+## Script-Specific Issues
+
+### Plugin Installation Failures
+
+<AccordionGroup>
+  <Accordion title="Git Clone Fails">
+    **Symptom**: Script fails during `git clone` operation
+
+    **Cause**: 
+    - Network issues
+    - Repository moved or deleted
+    - Directory already exists
+
+    **Solution**:
+    ```bash
+    # Check if directory exists
+    ls -la ~/.oh-my-zsh/custom/plugins/
+    
+    # Remove existing directory if corrupted
+    rm -rf ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+    
+    # Retry installation
+    zsh ./scripts/zsh_autosuggestions.zsh install
+    
+    # Check network connectivity
+    curl -I https://github.com
+    ```
+  </Accordion>
+
+  <Accordion title="Upgrade Fails">
+    **Symptom**: Script upgrade command fails or reports errors
+
+    **Cause**: Local changes in plugin directories or merge conflicts
+
+    **Solution**:
+    ```bash
+    # Navigate to plugin directory
+    cd ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    
+    # Check git status
+    git status
+    
+    # Reset to clean state
+    git reset --hard HEAD
+    git clean -fd
+    
+    # Pull updates
+    git pull --ff-only
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## macOS-Specific Issues
+
+### macOS Defaults Not Applied
+
+<AccordionGroup>
+  <Accordion title="Settings Don't Take Effect">
+    **Symptom**: macOS defaults commands run but settings unchanged
+
+    **Cause**: Need to restart affected services or log out
+
+    **Solution**:
+    ```bash
+    # Restart Dock and Finder
+    killall Dock
+    killall Finder
+    killall SystemUIServer
+    
+    # Log out and log back in
+    # Or restart the Mac
+    ```
+  </Accordion>
+
+  <Accordion title="Full Disk Access Required">
+    **Symptom**: Some defaults fail with permission errors
+
+    **Cause**: macOS security requires Full Disk Access for some settings
+
+    **Solution**:
+    1. Open **System Settings**
+    2. Go to **Privacy & Security** > **Full Disk Access**
+    3. Click **+** and add your terminal app
+    4. Restart the terminal
+    5. Run the defaults command again
+  </Accordion>
+</AccordionGroup>
+
+### Library Sync Issues
+
+<AccordionGroup>
+  <Accordion title="Application Settings Not Syncing">
+    **Symptom**: App preferences don't carry over
+
+    **Cause**: 
+    - Library sync not running on macOS
+    - Permissions issues
+    - Apps not closed during sync
+
+    **Solution**:
+    ```bash
+    # Verify macOS detection
+    uname -s  # Should output "Darwin"
+    
+    # Close all applications
+    killall Dock
+    
+    # Manually sync Library
+    rsync -avh --no-perms Library ~
+    
+    # Restart affected applications
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Performance Issues
+
+### Slow Shell Startup
+
+<AccordionGroup>
+  <Accordion title="Shell Takes Long to Load">
+    **Symptom**: Significant delay when opening new terminal windows
+
+    **Cause**: 
+    - Too many plugins
+    - Expensive operations in startup files
+    - Slow network calls
+
+    **Solution**:
+    ```bash
+    # Profile shell startup
+    time zsh -i -c exit
+    
+    # Detailed profiling
+    zsh -xv 2>&1 | ts -i "%.s" | tee /tmp/zsh-startup.log
+    
+    # Disable plugins one by one in ~/.zshrc
+    # Comment out slow plugins
+    
+    # Use lazy loading for heavy tools
+    # Example: Load nvm only when needed
+    ```
+
+    <Tip>
+    Use `zsh-defer` or lazy loading techniques for plugins that aren't needed immediately.
+    </Tip>
+  </Accordion>
+</AccordionGroup>
+
+## Debugging Strategies
+
+### General Debugging Steps
+
+1. **Enable Verbose Mode**
+   ```bash
+   set -x  # Enable in scripts
+   zsh -xv  # Run shell with verbose output
+   ```
+
+2. **Check Error Messages**
+   ```bash
+   ./bootstrap.sh 2>&1 | tee bootstrap.log
+   ```
+
+3. **Test Individual Components**
+   ```bash
+   # Test specific script
+   zsh -x ./scripts/powerlevel10k.zsh install
+   ```
+
+4. **Verify Prerequisites**
+   ```bash
+   # Check for required tools
+   command -v git zsh rsync brew
+   ```
+
+5. **Check File Permissions**
+   ```bash
+   ls -la ~/.zshrc ~/.config/
+   ```
+
+6. **Review Recent Changes**
+   ```bash
+   cd ~/.dotfiles
+   git log --oneline -10
+   git diff HEAD~1
+   ```
+
+<Note>
+When reporting issues, include the output of debugging commands and your system information (`uname -a`, macOS version, Zsh version).
+</Note>
+
+## Getting Help
+
+If you continue to experience issues:
+
+1. **Check Existing Issues**: Search the GitHub repository issues
+2. **Create Detailed Bug Report**: Include:
+   - Operating system and version
+   - Shell version (`zsh --version`)
+   - Error messages
+   - Steps to reproduce
+3. **Provide Context**: Share relevant configuration files
+4. **Test Clean Install**: Try in a fresh user account or VM
+
+## Related
+
+- [Installation Guide](/getting-started/installation) - Setup instructions
+- [Brewfile Reference](/reference/brewfile) - Package management
+- [macOS Configuration](/reference/macos) - macOS-specific settings

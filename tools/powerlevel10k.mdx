@@ -1,0 +1,552 @@
+---
+title: 'Powerlevel10k'
+description: 'A fast, flexible Zsh theme with instant prompt'
+icon: 'rocket'
+---
+
+Powerlevel10k is a theme for Zsh that emphasizes speed, flexibility, and out-of-the-box experience. It features an interactive configuration wizard, instant prompt, and extensive customization options for displaying Git status, command execution time, and system information.
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Instant Prompt" icon="bolt">
+    Ultra-fast prompt initialization, even with slow plugins
+  </Card>
+  
+  <Card title="Rich Git Status" icon="git">
+    Detailed Git information with customizable appearance
+  </Card>
+  
+  <Card title="Configuration Wizard" icon="wand-magic-sparkles">
+    Interactive setup with visual style selection
+  </Card>
+  
+  <Card title="Segment Customization" icon="sliders">
+    Control what information appears in your prompt
+  </Card>
+</CardGroup>
+
+## Installation
+
+Powerlevel10k is installed as an Oh My Zsh theme:
+
+```bash
+# Using the dotfiles bootstrap script
+./bootstrap.sh
+
+# Or install manually
+zsh scripts/powerlevel10k.zsh install
+```
+
+The installation script clones Powerlevel10k into the Oh My Zsh custom themes directory:
+
+```bash
+# Installation location
+${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+```
+
+<Info>
+Powerlevel10k requires a [Nerd Font](https://www.nerdfonts.com/) for icons and symbols. The configuration wizard will help you choose the right font style based on your terminal setup.
+</Info>
+
+## Configuration
+
+### Theme Activation
+
+Powerlevel10k is set as the default theme in `.zshrc`:
+
+```bash
+# Set theme
+ZSH_THEME="powerlevel10k/powerlevel10k"
+```
+
+### Instant Prompt
+
+Instant prompt is enabled at the top of `.zshrc`:
+
+```bash
+# Enable Powerlevel10k instant prompt
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+```
+
+<Note>
+The instant prompt block must be near the top of `.zshrc` before any commands that produce output. Code that requires user interaction should go before this block.
+</Note>
+
+### P10k Configuration
+
+The main configuration file is loaded at the end of `.zshrc`:
+
+```bash
+# Load Powerlevel10k config
+[[ ! -f "${XDG_CONFIG_HOME}/p10k.zsh" ]] || source "${XDG_CONFIG_HOME}"/p10k.zsh
+```
+
+Configuration file location:
+
+```bash
+${XDG_CONFIG_HOME}/p10k.zsh
+# or
+~/.config/p10k.zsh
+```
+
+## Initial Setup
+
+### Configuration Wizard
+
+Run the configuration wizard to customize your prompt:
+
+```bash
+# Start configuration wizard
+p10k configure
+```
+
+The wizard will guide you through:
+
+1. **Font Test**: Verify your terminal displays icons correctly
+2. **Prompt Style**: Choose between different visual styles
+3. **Character Set**: ASCII, Unicode, or Nerd Fonts
+4. **Prompt Colors**: Bright, dark, or rainbow
+5. **Show Current Time**: Display clock in prompt
+6. **Prompt Separators**: Angular, rounded, or slanted
+7. **Prompt Heads**: Angular, rounded, slanted, or flat
+8. **Prompt Tails**: Flat, rounded, slanted, or pointed
+9. **Prompt Height**: One line or two lines
+10. **Prompt Spacing**: Sparse, normal, or compact
+11. **Icons**: Show icons for Git status, etc.
+12. **Prompt Flow**: Concise, fluent, or disabled
+13. **Enable Transient Prompt**: Previous prompts become minimal
+14. **Instant Prompt Mode**: Verbose, quiet, or off
+
+<Tip>
+You can re-run `p10k configure` at any time to change your prompt style. Your current configuration will be backed up automatically.
+</Tip>
+
+## Prompt Segments
+
+### Available Segments
+
+Powerlevel10k displays various segments of information:
+
+| Segment | Description |
+|---------|-------------|
+| `os_icon` | Operating system icon |
+| `dir` | Current directory |
+| `vcs` | Git repository status |
+| `prompt_char` | Prompt character (shows last command status) |
+| `time` | Current time |
+| `status` | Exit code of last command |
+| `command_execution_time` | Duration of last command |
+| `background_jobs` | Number of background jobs |
+| `virtualenv` | Python virtual environment |
+| `pyenv` | Python version (pyenv) |
+| `nodeenv` | Node.js environment |
+| `nvm` | Node.js version (nvm) |
+| `kubecontext` | Kubernetes context |
+| `aws` | AWS profile |
+| `context` | User@hostname |
+
+### Git Status Indicators
+
+When in a Git repository, the `vcs` segment shows:
+
+| Symbol | Meaning |
+|--------|---------|
+| `⇡` | Ahead of remote |
+| `⇣` | Behind remote |
+| `⇕` | Diverged from remote |
+| `✚` | Untracked files |
+| `✱` | Modified files |
+| `✔` | Staged files |
+| `✖` | Deleted files |
+| `➜` | Renamed files |
+| `═` | Unmerged files |
+| `?` | Stashed changes |
+
+Example prompt with Git status:
+
+```bash
+~/project main ⇡1 ✱2 ✚3 ❯
+```
+
+This shows:
+- In directory `~/project`
+- On branch `main`
+- 1 commit ahead of remote (`⇡1`)
+- 2 modified files (`✱2`)
+- 3 untracked files (`✚3`)
+
+## Customization
+
+### Basic Customization
+
+Edit `~/.config/p10k.zsh` to customize your prompt. Common customizations:
+
+#### Show/Hide Segments
+
+```bash
+# Left prompt segments
+typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+  os_icon                 # OS identifier
+  dir                     # Current directory
+  vcs                     # Git status
+  prompt_char             # Prompt character
+)
+
+# Right prompt segments
+typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+  status                  # Exit code
+  command_execution_time  # Command duration
+  background_jobs         # Background jobs count
+  virtualenv              # Python venv
+  kubecontext             # Kubernetes context
+  time                    # Current time
+)
+```
+
+#### Directory Truncation
+
+Control how long paths are displayed:
+
+```bash
+# Show only last 2 directory components
+typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_last
+typeset -g POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
+
+# Show first and last directories only
+typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_from_middle
+typeset -g POWERLEVEL9K_DIR_MAX_LENGTH=40
+```
+
+#### Execution Time
+
+Customize command execution time display:
+
+```bash
+# Show execution time for commands longer than 3 seconds
+typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD=3
+
+# Time format
+typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_PRECISION=2
+```
+
+#### Current Time
+
+Customize time display:
+
+```bash
+# Time format (12-hour)
+typeset -g POWERLEVEL9K_TIME_FORMAT='%D{%I:%M:%S %p}'
+
+# Time format (24-hour)
+typeset -g POWERLEVEL9K_TIME_FORMAT='%D{%H:%M:%S}'
+
+# Time foreground and background colors
+typeset -g POWERLEVEL9K_TIME_FOREGROUND=7
+typeset -g POWERLEVEL9K_TIME_BACKGROUND=4
+```
+
+### Advanced Customization
+
+#### Custom Prompt Character
+
+Change the prompt character based on mode or status:
+
+```bash
+# Success (green ❯)
+typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VIINS_FOREGROUND=2
+
+# Error (red ❯)
+typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_VIINS_FOREGROUND=1
+
+# Vi command mode
+typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_VICMD_CONTENT_EXPANSION='❮'
+```
+
+#### Conditional Segments
+
+Show segments only under certain conditions:
+
+```bash
+# Show Kubernetes context only when kubectl config is set
+typeset -g POWERLEVEL9K_KUBECONTEXT_SHOW_ON_COMMAND='kubectl|helm|kubens|kubectx'
+
+# Show AWS profile only for AWS commands
+typeset -g POWERLEVEL9K_AWS_SHOW_ON_COMMAND='aws|terraform|cdk'
+```
+
+#### Custom Colors
+
+Customize segment colors:
+
+```bash
+# Directory colors
+typeset -g POWERLEVEL9K_DIR_FOREGROUND=4
+typeset -g POWERLEVEL9K_DIR_BACKGROUND=0
+
+# Git colors
+typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND=2
+typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND=3
+typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND=5
+```
+
+## Instant Prompt
+
+### How It Works
+
+Instant prompt displays the prompt before Zsh is fully initialized, making your terminal feel instantaneous even with slow plugins loaded.
+
+### Best Practices
+
+1. Keep instant prompt block at the top of `.zshrc`
+2. Avoid outputting anything before the instant prompt block
+3. Place commands requiring user input before the instant prompt block
+
+### Troubleshooting Instant Prompt
+
+If you see warnings about console output during initialization:
+
+```bash
+# Make instant prompt quiet
+p10k configure
+# Select "Quiet" instant prompt mode
+
+# Or manually edit ~/.config/p10k.zsh
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+```
+
+## Transient Prompt
+
+Transient prompt makes previous commands more compact:
+
+```bash
+# Before pressing Enter
+~/project main ⇡1 ✱2 ❯ git status
+
+# After pressing Enter (previous prompt becomes minimal)
+❯ git status
+# ... command output ...
+~/project main ⇡1 ✱2 ❯
+```
+
+Enable in configuration:
+
+```bash
+# Enable transient prompt
+typeset -g POWERLEVEL9K_TRANSIENT_PROMPT=always
+```
+
+## Performance
+
+### Why It's Fast
+
+Powerlevel10k achieves high performance through:
+
+1. **Async Git Status**: Git information fetched asynchronously
+2. **Prompt Caching**: Cached segments updated only when needed
+3. **Instant Prompt**: Prompt shown before full initialization
+4. **Optimized Code**: Written in Zsh with performance in mind
+
+### Performance Tips
+
+```bash
+# Show Git status only for repos with < 5000 files
+typeset -g POWERLEVEL9K_VCS_MAX_INDEX_SIZE_DIRTY=5000
+
+# Disable Git status in large repos
+typeset -g POWERLEVEL9K_VCS_DISABLE_GITSTATUS_FORMATTING=true
+
+# Reduce right prompt segments
+typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status time)
+```
+
+## Updating
+
+Use the upgrade script to update Powerlevel10k:
+
+```bash
+# Update to latest version
+zsh scripts/powerlevel10k.zsh upgrade
+```
+
+The script performs a git pull in the Powerlevel10k directory:
+
+```bash
+# Updates from
+${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+```
+
+<Info>
+After updating, you may want to re-run `p10k configure` if new features have been added.
+</Info>
+
+## Troubleshooting
+
+### Icons Not Displaying
+
+If you see question marks or boxes instead of icons:
+
+1. Install a [Nerd Font](https://www.nerdfonts.com/)
+2. Configure your terminal to use it
+3. Re-run configuration wizard
+
+```bash
+p10k configure
+```
+
+### Slow Prompt
+
+If the prompt feels slow:
+
+```bash
+# Benchmark prompt speed
+p10k finalize  # Measure instant prompt overhead
+time (source ~/.zshrc)  # Measure full initialization
+```
+
+Check what's slowing down your shell:
+
+```bash
+# Profile zsh startup
+zsh -i -c exit
+```
+
+### Segment Not Showing
+
+Verify the segment is enabled:
+
+```bash
+# Check enabled segments
+print -l $POWERLEVEL9K_LEFT_PROMPT_ELEMENTS
+print -l $POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS
+```
+
+### Git Status Not Updating
+
+Force refresh:
+
+```bash
+# Reload prompt
+p10k reload
+```
+
+## Popular Configurations
+
+### Minimal Setup
+
+```bash
+typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+  dir
+  vcs
+  prompt_char
+)
+
+typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+  status
+  time
+)
+```
+
+### Developer Setup
+
+```bash
+typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+  os_icon
+  dir
+  vcs
+  prompt_char
+)
+
+typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+  status
+  command_execution_time
+  background_jobs
+  virtualenv
+  nodeenv
+  kubecontext
+  time
+)
+```
+
+### DevOps Setup
+
+```bash
+typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
+  context
+  dir
+  vcs
+  prompt_char
+)
+
+typeset -g POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(
+  status
+  command_execution_time
+  kubecontext
+  aws
+  terraform
+  time
+)
+```
+
+## Tips and Best Practices
+
+<Tip>
+Run `p10k configure` periodically to discover new features and styles. Powerlevel10k is actively developed with regular improvements.
+</Tip>
+
+### Quick Reload
+
+After editing configuration:
+
+```bash
+# Reload configuration
+source ~/.zshrc
+
+# Or use p10k reload
+p10k reload
+```
+
+### Debugging
+
+Get detailed prompt information:
+
+```bash
+# Show segment debug info
+p10k debug
+
+# Display configuration
+p10k display -a
+```
+
+### Backup Configuration
+
+Before making changes:
+
+```bash
+# Backup your configuration
+cp ~/.config/p10k.zsh ~/.config/p10k.zsh.backup
+
+# Restore if needed
+cp ~/.config/p10k.zsh.backup ~/.config/p10k.zsh
+```
+
+## Resources
+
+- **Official Repository**: [github.com/romkatv/powerlevel10k](https://github.com/romkatv/powerlevel10k)
+- **Documentation**: Comprehensive docs in the GitHub repo
+- **Nerd Fonts**: [nerdfonts.com](https://www.nerdfonts.com)
+- **Font Installation Guide**: Check the Powerlevel10k README
+
+## Related Tools
+
+<CardGroup cols={2}>
+  <Card title="Oh My Zsh" icon="terminal" href="/tools/oh-my-zsh">
+    Framework for managing Zsh configuration
+  </Card>
+  
+  <Card title="All CLI Tools" icon="wrench" href="/tools/overview">
+    Explore other modern CLI tools
+  </Card>
+</CardGroup>

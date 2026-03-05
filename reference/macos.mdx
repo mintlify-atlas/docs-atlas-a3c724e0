@@ -1,0 +1,355 @@
+---
+title: macOS Configuration
+description: macOS-specific features, defaults, and setup in ombratteng/dotfiles
+---
+
+## Overview
+
+The dotfiles repository includes specialized configuration for macOS systems, including system defaults, application preferences, and macOS-specific integrations.
+
+<Info>
+macOS-specific features are automatically detected and applied when running on a Darwin system.
+</Info>
+
+## macOS Detection
+
+The bootstrap script automatically detects macOS:
+
+```bash
+_uname=$(uname -s)
+
+if [[ "${_uname}" == "Darwin" ]]; then
+    # macOS-specific logic
+fi
+```
+
+This ensures that macOS configurations are only applied on compatible systems.
+
+## Library Synchronization
+
+### Application Preferences
+
+The bootstrap process syncs the `Library` directory to preserve application settings:
+
+```bash
+if [[ "${_uname}" == "Darwin" ]]; then
+    for macOsDir in Library; do
+        rsync -avh --no-perms ${macOsDir} ~;
+    done
+fi
+```
+
+<Note>
+The Library directory contains application preferences, keybindings, and other macOS-specific configurations.
+</Note>
+
+### What Gets Synced
+
+The `Library` directory typically includes:
+
+- Application preferences (`Library/Preferences/`)
+- Application support files (`Library/Application Support/`)
+- Keyboard shortcuts and keybindings
+- Custom QuickLook plugins
+- Launch agents and daemons
+
+## macOS Defaults
+
+The `macos_defaults` file contains system preference commands that customize macOS behavior.
+
+<Warning>
+Changes to macOS defaults require logging out or restarting for some settings to take effect.
+</Warning>
+
+### Dock Configuration
+
+<AccordionGroup>
+  <Accordion title="Immutable Dock Size">
+    Prevents accidental resizing of the Dock:
+
+    ```bash
+    defaults write com.apple.dock size-immutable -bool true
+    ```
+
+    <Tip>
+    This locks the Dock size, preventing users from dragging the divider to resize it.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Transparent Hidden Apps">
+    Makes icons transparent when applications are hidden:
+
+    ```bash
+    defaults write com.apple.Dock showhidden -bool TRUE
+    ```
+
+    This provides visual feedback for hidden applications in the Dock.
+  </Accordion>
+
+  <Accordion title="Dock Spacers">
+    Adds a spacer tile to organize Dock items:
+
+    ```bash
+    defaults write com.apple.dock persistent-apps -array-add '{"tile-type"="small-spacer-tile";}'
+    ```
+
+    <Note>
+    Run this command multiple times to add multiple spacers. Restart the Dock with `killall Dock` to see changes.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+### Finder Configuration
+
+<AccordionGroup>
+  <Accordion title="Hide Desktop Icons">
+    Removes all icons from the desktop for a clean workspace:
+
+    ```bash
+    defaults write com.apple.finder CreateDesktop false
+    ```
+
+    <Tip>
+    This is ideal for users who prefer a minimal desktop and access files through Finder or other tools.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="Show Hidden Files">
+    Displays hidden files and folders in Finder:
+
+    ```bash
+    defaults write com.apple.Finder AppleShowAllFiles true
+    ```
+
+    Makes files and directories starting with `.` visible in Finder windows.
+  </Accordion>
+</AccordionGroup>
+
+### Application Preferences
+
+<AccordionGroup>
+  <Accordion title="Shottr Font Configuration">
+    Sets the font for Shottr screenshot annotations:
+
+    ```bash
+    defaults write cc.ffitch.shottr typeface 'FiraCode Nerd Font Mono'
+    ```
+
+    This ensures annotations use the Nerd Font with icon support.
+  </Accordion>
+
+  <Accordion title="Universal Clipboard">
+    Ensures clipboard sharing is enabled for Continuity:
+
+    ```bash
+    defaults write ~/Library/Preferences/com.apple.coreservices.useractivityd.plist ClipboardSharingEnabled 1
+    ```
+
+    Allows copy/paste between Apple devices using the same Apple ID.
+  </Accordion>
+</AccordionGroup>
+
+## Applying macOS Defaults
+
+The `macos_defaults` file is excluded from automatic syncing. To apply these settings:
+
+```bash
+# Apply all defaults
+source ~/path/to/macos_defaults
+
+# Restart affected services
+killall Dock
+killall Finder
+```
+
+<Warning>
+Some settings may require logging out or restarting your Mac to take effect fully.
+</Warning>
+
+## macOS-Specific Scripts
+
+### Additional Tools
+
+The bootstrap script installs additional tools on macOS:
+
+```bash
+if [[ "${_uname}" == "Darwin" ]]; then
+    scripts+=(
+        kubectl
+        kubectx
+        n
+    )
+fi
+```
+
+These scripts handle:
+- **kubectl**: Kubernetes command-line tool configuration
+- **kubectx**: Kubernetes context switching
+- **n**: Node.js version management
+
+## Shell Integration
+
+### Default Shell
+
+The bootstrap script can automatically switch to Zsh on macOS:
+
+```bash
+function switch_to_zsh() {
+    if [ "$(basename "${SHELL}")" = "zsh" ]; then
+        return
+    else
+        chsh -s $(which zsh)
+    fi
+}
+```
+
+<Info>
+Zsh has been the default shell on macOS since Catalina (10.15), but this ensures compatibility with older systems.
+</Info>
+
+## Touch ID for Sudo
+
+The Brewfile includes Touch ID authentication for sudo:
+
+```ruby
+brew "artginzburg/tap/sudo-touchid"
+```
+
+After installation, configure Touch ID for sudo:
+
+```bash
+sudo sudo-touchid
+```
+
+<Tip>
+This allows you to authenticate sudo commands with Touch ID instead of typing your password.
+</Tip>
+
+## macOS-Specific Applications
+
+### Window Management
+
+```ruby
+cask "rectangle-pro"      # Advanced window management
+cask "bettertouchtool"    # Gesture and keyboard customization
+```
+
+### System Utilities
+
+```ruby
+cask "cleanmymac"         # System maintenance
+cask "coconutbattery"     # Battery health monitoring
+cask "betterdisplay"      # Display management
+cask "macs-fan-control"   # Fan speed control
+```
+
+### Audio Management
+
+```ruby
+brew "switchaudio-osx"    # CLI audio device switching
+```
+
+Switch audio output devices from the command line:
+
+```bash
+SwitchAudioSource -s "AirPods Pro"
+```
+
+## Customization
+
+### Adding New Defaults
+
+1. Test the default command:
+   ```bash
+   defaults write com.example.app setting -bool true
+   ```
+
+2. Add to `macos_defaults` file
+
+3. Document the change with a comment
+
+### Viewing Current Settings
+
+Check current values:
+
+```bash
+defaults read com.apple.dock
+defaults read com.apple.finder
+```
+
+### Resetting Defaults
+
+To revert a setting:
+
+```bash
+defaults delete com.apple.dock size-immutable
+killall Dock
+```
+
+<Warning>
+Deleting defaults removes custom settings and reverts to system defaults.
+</Warning>
+
+## Best Practices
+
+1. **Backup First**: Export current settings before making changes:
+   ```bash
+   defaults read > ~/defaults-backup.plist
+   ```
+
+2. **Test Individually**: Apply one setting at a time to identify issues
+
+3. **Document Changes**: Add comments explaining why each default is set
+
+4. **Version Control**: Track `macos_defaults` in git for history
+
+5. **Restart Services**: Always restart affected services after changes:
+   ```bash
+   killall Dock Finder SystemUIServer
+   ```
+
+## Troubleshooting
+
+### Settings Not Applied
+
+If defaults aren't taking effect:
+
+1. Verify the command syntax:
+   ```bash
+   defaults read com.apple.dock size-immutable
+   ```
+
+2. Restart the affected application:
+   ```bash
+   killall Dock
+   ```
+
+3. Log out and log back in
+
+4. Check Console.app for errors
+
+### Permission Issues
+
+Some defaults require Full Disk Access:
+
+1. Open **System Settings** > **Privacy & Security** > **Full Disk Access**
+2. Add **Terminal.app** or your terminal emulator
+3. Restart the terminal and try again
+
+### Conflicts with System Settings
+
+If GUI changes override defaults:
+
+- System Settings may rewrite preferences
+- Some settings are managed by configuration profiles
+- Check for MDM or enterprise management
+
+<Tip>
+Use `defaults find <keyword>` to search for preference keys across all domains.
+</Tip>
+
+## Related
+
+- [Brewfile Reference](/reference/brewfile) - Package management
+- [Installation Guide](/getting-started/installation) - Initial setup
+- [Troubleshooting](/reference/troubleshooting) - Common issues

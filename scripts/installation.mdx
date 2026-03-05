@@ -1,0 +1,564 @@
+---
+title: Installation Scripts
+description: Modular script system for installing and managing development tools
+---
+
+The dotfiles repository uses a modular script architecture where each tool has its own installation and upgrade script. All scripts follow a consistent pattern and interface.
+
+## Script Architecture
+
+### Common Structure
+
+Every installation script follows this standardized structure:
+
+```zsh
+#!/usr/bin/env zsh
+
+_uname=$(uname -s)
+
+function command_exists() {
+	command -v "$@" >/dev/null 2>&1
+}
+
+function install() {
+	# Installation logic
+}
+
+function upgrade() {
+	# Upgrade logic
+}
+
+if [ -n "$1" ]; then
+	"$1"
+else
+	false
+fi
+
+unset command_exists install upgrade _uname
+```
+
+### Script Interface
+
+Each script exposes two functions that can be called as command-line arguments:
+
+<ParamField path="install" type="function">
+  Installs the tool if not already present. Returns `false` (exit code 1) if already installed.
+</ParamField>
+
+<ParamField path="upgrade" type="function">
+  Upgrades the tool to the latest version. Calls `install()` if the tool is not present.
+</ParamField>
+
+## Calling Individual Scripts
+
+You can run installation scripts directly:
+
+```bash
+# Install a tool
+zsh ./scripts/atuin.zsh install
+
+# Upgrade a tool
+zsh ./scripts/bat.zsh upgrade
+```
+
+<Note>
+Scripts are designed to be idempotent - running install on an already-installed tool will return false without making changes.
+</Note>
+
+## Installation Patterns
+
+### Pattern 1: Package Manager (Simple)
+
+Used for tools available through system package managers:
+
+```zsh
+function install() {
+	if command_exists -v bat; then
+		false
+	else
+		if [[ "${_uname}" == "Darwin" ]]; then
+			if command_exists -v brew; then
+				brew install bat
+			else
+				echo "Homebrew doesn't exist"
+				false
+			fi
+		elif [[ "${_uname:0:5}" == "Linux" ]]; then
+			if [[ -n "${_FORCE_INSTALL}" ]]; then
+				_args="-y"
+			fi
+
+			if command_exists -v apt-get; then
+				sudo apt-get install $_args bat
+			elif command_exists -v dnf; then
+				sudo dnf install $_args bat
+			else
+				echo "Could not find a valid package manager"
+				false
+			fi
+		fi
+		return
+	fi
+}
+```
+
+**Used by**: `bat`, `httpie`
+
+### Pattern 2: GitHub Releases
+
+Used for tools distributed as GitHub release binaries:
+
+```zsh
+function install() {
+	if command_exists -v atuin; then
+		false
+	else
+		if [[ "${_uname}" == "Darwin" ]]; then
+			if command_exists -v brew; then
+				brew install atuin
+			fi
+		elif [[ "${_uname:0:5}" == "Linux" ]]; then
+			if command_exists -v curl; then
+				_tmpdir=$(mktemp -d)
+				_atuin_latest_version=$(curl -s https://api.github.com/repos/atuinsh/atuin/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+				cd "${_tmpdir}" || exit
+				curl -sL "https://github.com/atuinsh/atuin/releases/download/${_atuin_latest_version}/atuin-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+				sudo install -o root -g root -m 0755 atuin-x86_64-unknown-linux-gnu/atuin /usr/local/bin/atuin
+			fi
+		fi
+		return
+	fi
+}
+```
+
+**Used by**: `atuin`, `eza`, `yq`
+
+### Pattern 3: Git Clone
+
+Used for tools distributed as Git repositories:
+
+```zsh
+DIR="${HOME}/.oh-my-zsh"
+
+function install() {
+	if [ -d "${DIR}" ]; then
+		false
+	else
+		git clone --quiet https://github.com/robbyrussell/oh-my-zsh.git "${DIR}"
+		return
+	fi
+}
+```
+
+**Used by**: `oh_my_zsh`, `powerlevel10k`, `nanorc`, `zsh_autosuggestions`, `zsh_completions`, `zsh_syntax_highlighting`
+
+### Pattern 4: Platform-Specific Packages
+
+Used for tools requiring different packages per distribution:
+
+```zsh
+function install() {
+	if command_exists -v step; then
+		false
+	else
+		if [[ "${_uname}" == "Darwin" ]]; then
+			brew install step
+		elif [[ "${_uname:0:5}" == "Linux" ]]; then
+			if command_exists -v curl; then
+				_tmpdir=$(mktemp -d)
+				_step_latest_version=$(curl -s https://api.github.com/repos/smallstep/cli/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+				_step_latest_version=${_step_latest_version:1}
+				_arch="x86_64"
+				if [[ "$(uname -m)" == "aarch64" ]]; then
+					_arch="aarch64"
+				fi
+
+				cd "$_tmpdir" || exit
+				if command_exists -v dpkg; then
+					_arch="amd64"
+					if [[ "$(uname -m)" == "aarch64" ]]; then
+						_arch="arm64"
+					fi
+					curl -LO "https://dl.smallstep.com/gh-release/cli/docs-ca-install/v${_step_latest_version}/step-cli_${_step_latest_version}-1_${_arch}.deb"
+					sudo dpkg -i "step-cli_${_step_latest_version}-1_${_arch}.deb"
+				elif command_exists -v dnf; then
+					curl -LO "https://dl.smallstep.com/gh-release/cli/docs-ca-install/v${_step_latest_version}/step-cli-${_step_latest_version}-1.${_arch}.rpm"
+					sudo dnf install "step-cli-${_step_latest_version}-1.${_arch}.rpm"
+				fi
+			fi
+		fi
+		return
+	fi
+}
+```
+
+**Used by**: `step`
+
+## Tool Scripts Reference
+
+### atuin
+
+Shell history manager with sync capabilities.
+
+<CodeGroup>
+```bash Installation
+# macOS: Uses Homebrew
+brew install atuin
+
+# Linux: Downloads from GitHub releases
+curl -sL "https://github.com/atuinsh/atuin/releases/download/${version}/atuin-x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+sudo install -o root -g root -m 0755 atuin /usr/local/bin/atuin
+```
+
+```bash Upgrade
+# Checks current version against latest GitHub release
+# Upgrades only if versions differ
+```
+</CodeGroup>
+
+**Location**: `scripts/atuin.zsh`
+
+### bat
+
+Cat clone with syntax highlighting and Git integration.
+
+<CodeGroup>
+```bash Installation
+# macOS
+brew install bat
+
+# Debian/Ubuntu
+sudo apt-get install bat
+
+# Fedora
+sudo dnf install bat
+```
+</CodeGroup>
+
+**Location**: `scripts/bat.zsh`
+
+### eza
+
+Modern replacement for `ls` with color and Git integration.
+
+<CodeGroup>
+```bash Installation
+# macOS
+brew install eza
+
+# Linux: Downloads from GitHub releases
+curl -sL "https://github.com/eza-community/eza/releases/download/${version}/eza_x86_64-unknown-linux-gnu.tar.gz" | tar -xz
+sudo install -o root -g root -m 0755 eza /usr/local/bin/eza
+```
+</CodeGroup>
+
+**Location**: `scripts/eza.zsh`
+
+### ls_colors
+
+LS_COLORS configuration for enhanced directory listings.
+
+**Location**: `scripts/ls_colors.zsh`
+
+### nanorc
+
+Syntax highlighting configurations for the nano editor.
+
+<CodeGroup>
+```bash Installation
+git clone https://github.com/scopatz/nanorc.git ~/.nano
+```
+
+```bash Upgrade
+cd ~/.nano
+git pull --ff-only --quiet
+```
+</CodeGroup>
+
+**Location**: `scripts/nanorc.zsh`
+
+### oh_my_zsh
+
+Framework for managing Zsh configuration.
+
+<CodeGroup>
+```bash Installation
+git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh
+```
+
+```bash Upgrade
+env ZSH="${ZSH}" sh "${ZSH}/tools/upgrade.sh"
+```
+</CodeGroup>
+
+**Location**: `scripts/oh_my_zsh.zsh`
+
+### powerlevel10k
+
+Fast and flexible Zsh theme.
+
+<CodeGroup>
+```bash Installation
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+```
+
+```bash Upgrade
+cd ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
+git pull --ff-only --quiet
+```
+</CodeGroup>
+
+**Location**: `scripts/powerlevel10k.zsh`
+
+### step
+
+Smallstep CLI for certificate management.
+
+<CodeGroup>
+```bash Installation (Debian/Ubuntu)
+curl -LO "https://dl.smallstep.com/gh-release/cli/docs-ca-install/v${version}/step-cli_${version}-1_amd64.deb"
+sudo dpkg -i step-cli_${version}-1_amd64.deb
+```
+
+```bash Installation (Fedora)
+curl -LO "https://dl.smallstep.com/gh-release/cli/docs-ca-install/v${version}/step-cli-${version}-1.x86_64.rpm"
+sudo dnf install step-cli-${version}-1.x86_64.rpm
+```
+</CodeGroup>
+
+**Location**: `scripts/step.zsh`
+
+### yq
+
+YAML/JSON/XML/CSV processor.
+
+<CodeGroup>
+```bash Installation
+# macOS
+brew install yq
+
+# Linux
+curl -LO "https://github.com/mikefarah/yq/releases/download/${version}/yq_linux_amd64"
+sudo install -o root -g root -m 0755 yq_linux_amd64 /usr/local/bin/yq
+```
+</CodeGroup>
+
+**Location**: `scripts/yq.zsh`
+
+### zsh_autosuggestions
+
+Fish-like autosuggestions for Zsh.
+
+<CodeGroup>
+```bash Installation
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+```
+</CodeGroup>
+
+**Location**: `scripts/zsh_autosuggestions.zsh`
+
+### zsh_completions
+
+Additional completion definitions for Zsh.
+
+<CodeGroup>
+```bash Installation
+git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions
+```
+</CodeGroup>
+
+**Location**: `scripts/zsh_completions.zsh`
+
+### zsh_syntax_highlighting
+
+Fish-like syntax highlighting for Zsh.
+
+<CodeGroup>
+```bash Installation
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
+</CodeGroup>
+
+**Location**: `scripts/zsh_syntax_highlighting.zsh`
+
+## Environment Variables
+
+Scripts respect the following environment variables:
+
+<ParamField path="_FORCE_INSTALL" type="boolean">
+  When set to `true`, scripts run in non-interactive mode and pass `-y` flags to package managers.
+  
+  ```zsh
+  export _FORCE_INSTALL=true
+  zsh ./scripts/bat.zsh install
+  ```
+</ParamField>
+
+<ParamField path="ZSH_CUSTOM" type="string">
+  Custom directory for Oh My Zsh plugins and themes. Defaults to `~/.oh-my-zsh/custom`.
+</ParamField>
+
+<ParamField path="_uname" type="string">
+  Operating system name from `uname -s`. Used internally for platform detection.
+</ParamField>
+
+## Platform Detection
+
+Scripts detect the operating system and adapt behavior accordingly:
+
+```zsh
+_uname=$(uname -s)
+
+if [[ "${_uname}" == "Darwin" ]]; then
+	# macOS-specific installation
+	brew install tool
+elif [[ "${_uname:0:5}" == "Linux" ]]; then
+	# Linux-specific installation
+	apt-get install tool
+fi
+```
+
+## Architecture Detection
+
+Some scripts detect CPU architecture for binary downloads:
+
+```zsh
+_arch="x86_64"
+if [[ "$(uname -m)" == "aarch64" ]]; then
+	_arch="aarch64"
+fi
+
+# For Debian packages
+_arch="amd64"
+if [[ "$(uname -m)" == "aarch64" ]]; then
+	_arch="arm64"
+fi
+```
+
+## Version Checking
+
+Scripts that upgrade from GitHub releases check versions before upgrading:
+
+```zsh
+_atuin_latest_version=$(curl -s https://api.github.com/repos/atuinsh/atuin/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+_atuin_version=$(atuin --version | sed -n '1p' | awk '{print $2}')
+
+# Remove "v" prefix if present
+_atuin_latest_version_no_prefix="${_atuin_latest_version#v}"
+
+if [[ "${_atuin_latest_version_no_prefix}" == "${_atuin_version}" ]]; then
+	return  # Already up to date
+fi
+```
+
+<Note>
+Version checking avoids unnecessary downloads and installations when tools are already at the latest version.
+</Note>
+
+## Return Codes
+
+Scripts use consistent return codes:
+
+- `0` (true): Operation successful (tool installed/upgraded)
+- `1` (false): Operation not needed (already installed) or failed
+
+```zsh
+if command_exists -v tool; then
+	false  # Already installed
+else
+	install_tool
+	return  # Successfully installed
+fi
+```
+
+## Creating a New Tool Script
+
+To add a new tool to the system:
+
+<Steps>
+  <Step title="Create Script File">
+    Create a new file in `scripts/` named `toolname.zsh`:
+
+    ```bash
+    touch scripts/newtool.zsh
+    chmod +x scripts/newtool.zsh
+    ```
+  </Step>
+
+  <Step title="Implement Template">
+    Use the standard script template:
+
+    ```zsh
+    #!/usr/bin/env zsh
+
+    _uname=$(uname -s)
+
+    function command_exists() {
+        command -v "$@" >/dev/null 2>&1
+    }
+
+    function install() {
+        if command_exists -v newtool; then
+            false
+        else
+            # Installation logic here
+            return
+        fi
+    }
+
+    function upgrade() {
+        if command_exists -v newtool; then
+            # Upgrade logic here
+            return
+        else
+            install
+        fi
+    }
+
+    if [ -n "$1" ]; then
+        "$1"
+    else
+        false
+    fi
+
+    unset command_exists install upgrade _uname
+    ```
+  </Step>
+
+  <Step title="Add to Bootstrap">
+    Add the script name to the `scripts` array in `bootstrap.sh`:
+
+    ```zsh
+    scripts=(
+        atuin
+        bat
+        # ... other tools
+        newtool  # Add your new tool here
+    )
+    ```
+  </Step>
+
+  <Step title="Test">
+    Test the script directly:
+
+    ```bash
+    zsh ./scripts/newtool.zsh install
+    zsh ./scripts/newtool.zsh upgrade
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+Always implement proper error checking and return appropriate exit codes. Scripts should be idempotent and safe to run multiple times.
+</Warning>
+
+## Best Practices
+
+1. **Check before installing**: Always verify the tool isn't already installed
+2. **Platform-specific logic**: Use `_uname` to handle macOS and Linux differences
+3. **Package manager detection**: Check for package manager availability before using
+4. **Version comparison**: Compare versions before upgrading to avoid unnecessary work
+5. **Clean up**: Unset functions and variables at the end of the script
+6. **Temporary directories**: Use `mktemp -d` for temporary downloads
+7. **Silent operations**: Use `--quiet` flags for git operations to reduce noise
+8. **Error messages**: Provide clear error messages when dependencies are missing

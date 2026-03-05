@@ -1,0 +1,369 @@
+---
+title: Git Configuration
+description: Git configuration with powerful aliases and workflow automation
+---
+
+## Overview
+
+The Git configuration provides a comprehensive set of aliases and settings optimized for modern development workflows, including GitHub integration, branch management, and enhanced logging.
+
+## Core Settings
+
+<CodeGroup>
+```ini Core Configuration
+[core]
+  autocrlf = false
+  editor = code --wait
+  pager = less
+  savecrlf = true
+  whitespace = trailing-space,space-before-tab,tab-in-indent
+```
+
+```ini Color Settings
+[color]
+  ui = true
+```
+
+```ini Log Settings
+[log]
+  abbrevCommit = true
+
+[format]
+  pretty = format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+```
+
+```ini Push Settings
+[push]
+  default = current
+  autoSetupRemote = true
+```
+</CodeGroup>
+
+<Info>
+`push.autoSetupRemote = true` automatically sets up remote tracking branches when pushing, eliminating the need for `git push -u origin <branch>`.
+</Info>
+
+## Git LFS
+
+Git Large File Storage is configured and ready to use:
+
+```ini .gitconfig
+[filter "lfs"]
+  clean = git-lfs clean -- %f
+  process = git-lfs filter-process
+  required = true
+  smudge = git-lfs smudge -- %f
+```
+
+## Autocorrect
+
+Git will automatically correct mistyped commands after 5 deciseconds (0.5 seconds):
+
+```ini .gitconfig
+[help]
+  autocorrect = 5
+```
+
+<Warning>
+Commands will be auto-corrected after a 0.5 second delay. Be careful with destructive commands.
+</Warning>
+
+## Powerful Aliases
+
+### Listing Aliases
+
+View all configured Git aliases:
+
+```bash
+git alias
+```
+
+This alias uses a regex pattern to extract and format all aliases from the Git config.
+
+### Log and History
+
+<Tabs>
+  <Tab title="graph">
+    Visual branch graph:
+
+    ```bash
+    git graph
+    ```
+
+    Displays a compact graph view with branch decorations:
+    ```ini
+    graph = log --oneline --graph --decorate
+    ```
+  </Tab>
+
+  <Tab title="ls">
+    Compact log with commit hash, message, and author:
+
+    ```bash
+    git ls
+    ```
+
+    ```ini
+    ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
+    ```
+
+    Output example:
+    ```
+    a1b2c3d (HEAD -> main) Add new feature [John Doe]
+    e4f5g6h Update documentation [Jane Smith]
+    ```
+  </Tab>
+
+  <Tab title="ll">
+    Detailed log with file statistics:
+
+    ```bash
+    git ll
+    ```
+
+    ```ini
+    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
+    ```
+
+    Shows lines added/removed for each file.
+  </Tab>
+
+  <Tab title="lds">
+    Log with dates:
+
+    ```bash
+    git lds
+    ```
+
+    ```ini
+    lds = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=short
+    ```
+  </Tab>
+
+  <Tab title="gh">
+    GitHub-style changelog:
+
+    ```bash
+    git gh
+    ```
+
+    ```ini
+    gh = log --pretty=format:"%C(yellow)-%C(reset)\\ %C(green)%s%C(reset)\\ %C(red)%h%C(reset)" --decorate --reverse
+    ```
+
+    Perfect for generating release notes.
+  </Tab>
+</Tabs>
+
+### Branch Management
+
+<CodeGroup>
+```bash List Local Branches
+git local-branches
+```
+
+```bash Recent Branches
+git recent-branches
+```
+
+```bash Prune Deleted Branches
+git prune-branches
+```
+</CodeGroup>
+
+#### Local Branches
+
+Lists branches without remote tracking:
+
+```ini .gitconfig
+local-branches = !git branch -vv | cut -c 3- | awk '$3 !~/\\[/ { print $1 }'
+```
+
+<Tip>
+Use this to find branches that were created locally but never pushed.
+</Tip>
+
+#### Recent Branches
+
+Shows the most recently committed branches:
+
+```ini .gitconfig
+recent-branches = !git branch --sort=-committerdate | head
+```
+
+#### Prune Branches
+
+Cleans up local branches whose remote counterparts have been deleted:
+
+```ini .gitconfig
+prune-branches = !git remote prune origin && git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -D
+```
+
+<Warning>
+This will force delete local branches. Make sure you don't have uncommitted work.
+</Warning>
+
+### Author Management
+
+List all unique commit authors (excluding GitHub noreply addresses):
+
+```bash
+git authors
+```
+
+```ini .gitconfig
+authors = !git log --format='%aN <%aE>' | grep -v 'users.noreply.github.com' | sort -u --ignore-case
+```
+
+Useful for generating contributor lists and checking commit attribution.
+
+## GitHub CLI Integration
+
+### Create Dependency Bump PR
+
+Automatically create a pull request for dependency updates with proper co-author attribution:
+
+```bash
+git pr-bump-dependencies
+```
+
+```ini .gitconfig
+pr-bump-dependencies = !gh pr create --title \"Bump dependencies in \\`$(basename $(pwd))\\`\" --body \"$(git gh develop...HEAD)\n\n$(git log --pretty=format:'%an <%ae>' develop...HEAD | uniq | xargs -L1 echo 'Co-authored-by:')\"
+```
+
+This alias:
+1. Creates a PR with a formatted title including the project name
+2. Includes a changelog of commits
+3. Adds co-author attributions for all contributors
+
+### Merge Dependency Bump PR
+
+Merge and clean up a dependency bump PR:
+
+```bash
+git merge-bump-dependencies
+```
+
+```ini .gitconfig
+merge-bump-dependencies = !gh pr merge --squash --delete-branch --body \"$(git gh develop...HEAD)\n\n$(git log --pretty=format:'%an <%ae>' develop...HEAD | uniq | xargs -L1 echo 'Co-authored-by:')\"
+```
+
+<Note>
+These aliases assume you're working with a `develop` base branch. Adjust as needed for `main` or other base branches.
+</Note>
+
+## Git Init Template
+
+Custom Git repository initialization template:
+
+```ini .gitconfig
+[init]
+  templateDir = ~/.config/git/template/
+```
+
+The template directory can contain:
+- Pre-configured hooks
+- Default `.gitattributes`
+- Default `.gitignore` patterns
+- Custom configuration
+
+## Hub Protocol
+
+Configure GitHub Hub to use SSH instead of HTTPS:
+
+```ini .gitconfig
+[hub]
+  protocol = ssh
+```
+
+## Merge Strategies
+
+Custom merge driver for "ours" strategy:
+
+```ini .gitconfig
+[merge "ours"]
+  driver = true
+```
+
+This allows you to configure `.gitattributes` to always keep "our" version of specific files during merges.
+
+## Protocol Version
+
+Use Git protocol version 2 for improved performance:
+
+```ini .gitconfig
+[protocol]
+  version = 2
+```
+
+<Info>
+Protocol v2 reduces network overhead and improves clone and fetch performance.
+</Info>
+
+## Local Configuration
+
+The configuration includes support for machine-specific settings:
+
+```ini .gitconfig
+[include]
+  path = ~/.gitconfig.local
+```
+
+Use `~/.gitconfig.local` to store:
+- User name and email
+- GPG signing keys
+- Machine-specific aliases
+- Private repository credentials
+
+Example `~/.gitconfig.local`:
+
+```ini ~/.gitconfig.local
+[user]
+  name = Your Name
+  email = your.email@example.com
+  signingkey = YOUR_GPG_KEY_ID
+
+[commit]
+  gpgsign = true
+
+[tag]
+  gpgsign = true
+```
+
+## Global Ignore File
+
+Configure global ignore patterns:
+
+```ini .gitconfig
+[core]
+  excludesfile = ~/.config/git/ignore
+```
+
+Common patterns in `~/.config/git/ignore`:
+```gitignore
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.env.local
+```
+
+## Whitespace Handling
+
+The configuration enforces clean whitespace:
+
+```ini .gitconfig
+[core]
+  whitespace = trailing-space,space-before-tab,tab-in-indent
+```
+
+Git will warn about:
+- Trailing whitespace at the end of lines
+- Spaces before tabs at the beginning of lines  
+- Tabs used for indentation
+
+<Tip>
+Configure your editor to automatically trim trailing whitespace on save to avoid whitespace-related issues.
+</Tip>

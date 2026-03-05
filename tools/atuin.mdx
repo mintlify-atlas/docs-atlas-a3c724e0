@@ -1,0 +1,404 @@
+---
+title: 'Atuin'
+description: 'Magical shell history tool with sync and search capabilities'
+icon: 'clock-rotate-left'
+---
+
+Atuin replaces your existing shell history with a SQLite database, providing powerful search capabilities and the ability to sync your command history across multiple machines.
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Smart Search" icon="magnifying-glass">
+    Full-text search across your entire command history
+  </Card>
+  
+  <Card title="Cross-Machine Sync" icon="cloud">
+    Sync history between all your devices
+  </Card>
+  
+  <Card title="Context Aware" icon="brain">
+    Tracks directory, exit status, and command duration
+  </Card>
+  
+  <Card title="Privacy First" icon="shield">
+    End-to-end encrypted sync (optional)
+  </Card>
+</CardGroup>
+
+## Installation
+
+### macOS
+
+```bash
+brew install atuin
+```
+
+### Linux
+
+The installation script automatically downloads and installs the latest release:
+
+```bash
+# Using the dotfiles bootstrap script
+./bootstrap.sh
+
+# Or install manually
+zsh scripts/atuin.zsh install
+```
+
+<Info>
+The Linux installation script downloads the latest release from GitHub and installs it to `/usr/local/bin/atuin`.
+</Info>
+
+## Configuration
+
+### Initialization
+
+Atuin is automatically initialized in `.zshrc`:
+
+```bash
+# Enable atuin for history sync
+if [ -x "$(command -v atuin)" ] && [ -z "${_DISABLE_ATUIN}" ]; then
+  eval "$(atuin init zsh --disable-up-arrow)"
+fi
+```
+
+<Note>
+The `--disable-up-arrow` flag preserves the default up-arrow behavior for local history navigation, while `Ctrl+R` opens Atuin's powerful search interface.
+</Note>
+
+### Disabling Atuin
+
+If you need to temporarily disable Atuin:
+
+```bash
+# Add to .zshrc.local or your environment
+export _DISABLE_ATUIN=1
+```
+
+## Usage
+
+### Interactive Search
+
+Press `Ctrl+R` to open Atuin's interactive search interface:
+
+```bash
+# Press Ctrl+R to search
+# Start typing to filter commands
+# Use arrow keys to navigate
+# Press Enter to execute
+# Press Esc to cancel
+```
+
+### Search Features
+
+Atuin provides powerful search capabilities:
+
+```bash
+# Search for commands containing "docker"
+atuin search docker
+
+# Search in a specific directory context
+atuin search --cwd /path/to/project git
+
+# Search by exit code (find failed commands)
+atuin search --exit 1
+
+# Search excluding certain patterns
+atuin search --exclude "secret"
+```
+
+### Command Line Interface
+
+```bash
+# View your history statistics
+atuin stats
+
+# Show recent commands
+atuin history list
+
+# Search history
+atuin search <query>
+
+# Import history from shell
+atuin import auto
+
+# Sync history (if configured)
+atuin sync
+```
+
+## History Sync
+
+### Setup Sync Server
+
+Atuin can sync your history across machines using the official sync server or self-hosted:
+
+```bash
+# Register for sync (uses official server)
+atuin register -u <username> -e <email>
+
+# Login on another machine
+atuin login -u <username>
+
+# Sync your history
+atuin sync
+```
+
+<Tip>
+History sync is end-to-end encrypted, so your commands remain private even when using the official sync server.
+</Tip>
+
+### Self-Hosted Sync
+
+You can also run your own Atuin sync server:
+
+```bash
+# Set custom sync server in config
+atuin config set sync_address https://your-server.com
+```
+
+## Advanced Configuration
+
+### Config File Location
+
+```bash
+# Atuin config file
+~/.config/atuin/config.toml
+```
+
+### Common Settings
+
+```toml
+# Auto sync on every command
+auto_sync = true
+
+# How often to sync (in seconds)
+sync_frequency = "10m"
+
+# Search mode: prefix, full-text, fuzzy
+search_mode = "fuzzy"
+
+# Filter mode: global, host, session, directory
+filter_mode = "global"
+
+# Show preview of command
+show_preview = true
+
+# Maximum number of lines to show
+max_preview_height = 4
+
+# Keybindings
+## Use Ctrl+R for search
+ctrl_r = true
+
+# History filter
+## Exclude commands starting with a space
+history_filter = "^\\s"
+
+# Inline height
+inline_height = 20
+```
+
+## Statistics and Analytics
+
+View detailed statistics about your command usage:
+
+```bash
+# Overall statistics
+atuin stats
+
+# Most used commands
+atuin stats --count 10
+
+# Statistics for a specific period
+atuin stats --period day
+atuin stats --period week
+atuin stats --period month
+```
+
+Example output:
+
+```bash
++---------------------------+
+| Atuin Statistics          |
++---------------------------+
+| Total commands    | 15234 |
+| Unique commands   | 2841  |
+| Success rate      | 94%   |
+| Average duration  | 1.2s  |
++---------------------------+
+
+Top 10 commands:
+  1. git status        (892)
+  2. ls                (654)
+  3. cd                (543)
+  4. docker ps         (321)
+  5. kubectl get pods  (287)
+```
+
+## Integration with Zsh
+
+### Custom Keybindings
+
+Add custom keybindings for Atuin:
+
+```bash
+# In .zshrc
+bindkey '^[r' atuin-search  # Alt+R for search
+```
+
+### History Format
+
+Atuin respects the Zsh history timestamp format:
+
+```bash
+# Set in .zshrc
+HIST_STAMPS="dd.mm.yyyy"
+```
+
+## Updating
+
+### macOS
+
+```bash
+brew upgrade atuin
+```
+
+### Linux
+
+Use the upgrade script:
+
+```bash
+# Automatic update to latest release
+zsh scripts/atuin.zsh upgrade
+```
+
+<Info>
+The upgrade script checks the installed version against the latest GitHub release and only updates if a newer version is available.
+</Info>
+
+## Troubleshooting
+
+### Import Existing History
+
+If you have existing shell history:
+
+```bash
+# Import from Zsh
+atuin import auto
+
+# Import from specific file
+atuin import zsh --file ~/.zsh_history
+```
+
+### Reset History
+
+If you need to start fresh:
+
+```bash
+# Delete local history
+rm -rf ~/.local/share/atuin
+
+# Re-import or sync
+atuin import auto
+# or
+atuin sync
+```
+
+### Sync Issues
+
+If sync is not working:
+
+```bash
+# Check sync status
+atuin status
+
+# Force a sync
+atuin sync --force
+
+# Check config
+atuin config list
+```
+
+## Privacy Considerations
+
+<Note>
+Atuin stores all commands in a local SQLite database. Be mindful of sensitive information like passwords or API keys in your command history.
+</Note>
+
+### Filtering Sensitive Commands
+
+Configure Atuin to exclude sensitive commands:
+
+```toml
+# In ~/.config/atuin/config.toml
+
+# Don't record commands starting with a space
+history_filter = "^\\s"
+
+# Exclude specific patterns
+secrets_filter = true
+```
+
+### Session Isolation
+
+Use Zsh's history settings to prevent sensitive commands from being recorded:
+
+```bash
+# Prefix command with a space to exclude from history
+ export AWS_SECRET_KEY=...  # Won't be recorded
+```
+
+## Tips and Best Practices
+
+<Tip>
+Use the space prefix feature to prevent sensitive commands from being saved to history. This works with both Atuin and standard Zsh history.
+</Tip>
+
+### Directory Context
+
+Atuin tracks the directory where commands were run:
+
+```bash
+# Search only in current directory context
+atuin search --cwd $(pwd) npm
+```
+
+### Exit Code Filtering
+
+Find commands that failed:
+
+```bash
+# Show only failed commands
+atuin search --exit 1
+
+# Show only successful commands
+atuin search --exit 0
+```
+
+### Session Management
+
+Atuin tracks sessions, allowing you to view commands from specific sessions:
+
+```bash
+# View current session history
+atuin history list --session
+```
+
+## Resources
+
+- **Official Website**: [atuin.sh](https://atuin.sh)
+- **GitHub**: [atuinsh/atuin](https://github.com/atuinsh/atuin)
+- **Documentation**: [docs.atuin.sh](https://docs.atuin.sh)
+
+## Related Tools
+
+<CardGroup cols={2}>
+  <Card title="Zsh Configuration" icon="terminal" href="/tools/oh-my-zsh">
+    Learn about the Oh My Zsh framework
+  </Card>
+  
+  <Card title="All CLI Tools" icon="wrench" href="/tools/overview">
+    Explore other modern CLI tools
+  </Card>
+</CardGroup>

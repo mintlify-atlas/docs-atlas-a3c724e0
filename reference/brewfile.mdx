@@ -1,0 +1,390 @@
+---
+title: Brewfile Reference
+description: Complete guide to the Brewfile and Homebrew integration in ombratteng/dotfiles
+---
+
+## Overview
+
+The Brewfile is a declarative package manifest that defines all Homebrew packages, casks, and Mac App Store applications to be installed on your system. It uses Homebrew Bundle to manage installations in a reproducible way.
+
+<Info>
+The Brewfile is located at `~/.config/Brewfile` and is automatically synced during the bootstrap process.
+</Info>
+
+## File Structure
+
+The Brewfile is organized into four main sections:
+
+1. **Taps** - Third-party Homebrew repositories
+2. **Formulae** - Command-line tools and utilities
+3. **Casks** - GUI applications
+4. **Mac App Store** - Apps from the Apple App Store
+
+## Taps
+
+Custom Homebrew repositories that provide additional packages:
+
+```ruby
+tap "1password/tap"
+tap "anomalyco/tap"
+tap "artginzburg/tap"
+tap "derailed/k9s"
+tap "derailed/popeye"
+tap "esolitos/ipa"
+tap "mike-engel/jwt-cli"
+tap "ory/tap"
+tap "pulumi/tap"
+tap "siderolabs/tap"
+tap "tw93/tap"
+```
+
+<Tip>
+Taps allow you to install packages from third-party repositories maintained by organizations and individuals.
+</Tip>
+
+## Formulae (CLI Tools)
+
+### Core Utilities
+
+Essential command-line tools and enhanced versions of standard utilities:
+
+```ruby
+brew "coreutils"      # GNU core utilities
+brew "gnu-sed"        # GNU version of sed
+brew "gnu-tar"        # GNU version of tar
+brew "curl"           # Modern curl
+brew "wget"           # Network downloader
+brew "rsync"          # File synchronization
+brew "tree"           # Directory tree viewer
+```
+
+### Shell & Terminal
+
+Tools for enhancing your shell experience:
+
+```ruby
+brew "bash"           # Modern Bash shell
+brew "zsh"            # Z shell
+brew "tmux"           # Terminal multiplexer
+brew "atuin"          # Shell history management
+```
+
+### Development Tools
+
+Programming languages, version managers, and build tools:
+
+```ruby
+brew "git"            # Version control
+brew "git-flow"       # Git workflow extensions
+brew "git-lfs"        # Large file storage
+brew "gh"             # GitHub CLI
+brew "go"             # Go programming language
+brew "cmake"          # Build system
+brew "make"           # GNU Make
+brew "n"              # Node.js version manager
+brew "uv"             # Python package manager
+brew "pipx"           # Python app installer
+```
+
+### Cloud & Infrastructure
+
+DevOps and cloud infrastructure tools:
+
+```ruby
+brew "awscli"         # AWS command line
+brew "terraform"      # Infrastructure as code
+brew "ansible"        # Configuration management
+brew "pulumi"         # Infrastructure as code
+```
+
+### Kubernetes Tools
+
+Container orchestration and Kubernetes utilities:
+
+```ruby
+brew "kubernetes-cli" # kubectl
+brew "helm"           # Kubernetes package manager
+brew "helm@3"         # Helm version 3
+brew "helmfile"       # Helm releases manager
+brew "krew"           # kubectl plugin manager
+brew "kubectx"        # Context switching
+brew "kustomize"      # Kubernetes customization
+brew "k9s"            # Kubernetes TUI
+brew "popeye"         # Kubernetes cluster sanitizer
+brew "talosctl"       # Talos Linux CLI
+```
+
+### Monitoring & Diagnostics
+
+System monitoring and network diagnostics:
+
+```ruby
+brew "btop"           # Resource monitor
+brew "ctop"           # Container metrics
+brew "nmap"           # Network scanner
+brew "mtr"            # Network diagnostics
+brew "iperf"          # Network performance
+brew "iperf3"         # Network performance v3
+brew "iproute2mac"    # Linux ip command for macOS
+brew "lldpd"          # Link Layer Discovery
+```
+
+### File & Data Tools
+
+File manipulation and data processing utilities:
+
+```ruby
+brew "bat"            # Cat with syntax highlighting
+brew "eza"            # Modern ls replacement
+brew "duckdb"         # Analytical database
+brew "exiftool"       # Metadata reader/writer
+brew "imagemagick"    # Image manipulation
+brew "ffmpeg"         # Video/audio processing
+brew "yq"             # YAML processor
+brew "jq"             # JSON processor (via jwt-cli)
+```
+
+### Security & Cryptography
+
+Security tools and cryptographic utilities:
+
+```ruby
+brew "gnupg"          # GPG encryption
+brew "pinentry-mac"   # GPG passphrase entry
+brew "paperkey"       # GPG key backup
+brew "openssh"        # SSH client/server
+brew "step"           # Certificate management
+brew "sshpass"        # SSH password automation
+brew "jwt-cli"        # JWT token utility
+```
+
+### Utilities
+
+Miscellaneous useful tools:
+
+```ruby
+brew "mas"            # Mac App Store CLI
+brew "macos-trash"    # Safe file deletion
+brew "nano"           # Text editor
+brew "vim"            # Text editor
+brew "watch"          # Command repeater
+brew "bluetoothconnector" # Bluetooth automation
+brew "switchaudio-osx"    # Audio device switching
+```
+
+### Container & Virtualization
+
+Container and VM tools:
+
+```ruby
+brew "dive"           # Docker image explorer
+brew "libvirt"        # Virtualization API
+```
+
+### Specialized Tools
+
+From custom taps:
+
+```ruby
+brew "anomalyco/tap/opencode"      # OpenCode CLI
+brew "artginzburg/tap/sudo-touchid" # Touch ID for sudo
+brew "tw93/tap/mole"                # Network tunneling
+```
+
+## Casks (GUI Applications)
+
+Desktop applications installed via Homebrew:
+
+<AccordionGroup>
+  <Accordion title="Productivity & Utilities">
+    ```ruby
+    cask "1password"          # Password manager
+    cask "1password-cli"      # 1Password CLI
+    cask "bettertouchtool"    # Gesture customization
+    cask "rectangle-pro"      # Window management
+    cask "rocket"             # Emoji picker
+    cask "numi"               # Calculator
+    ```
+  </Accordion>
+
+  <Accordion title="Development Tools">
+    ```ruby
+    cask "sublime-merge@dev"  # Git client
+    cask "forklift"           # File manager
+    cask "tableplus"          # Database client
+    cask "orbstack"           # Docker & Linux
+    ```
+  </Accordion>
+
+  <Accordion title="Media & Creative">
+    ```ruby
+    cask "iina"               # Video player
+    cask "vlc"                # Media player
+    cask "spotify"            # Music streaming
+    cask "pika"               # Color picker
+    ```
+  </Accordion>
+
+  <Accordion title="System Tools">
+    ```ruby
+    cask "cleanmymac"         # System cleaner
+    cask "coconutbattery"     # Battery health
+    cask "betterdisplay"      # Display management
+    cask "macs-fan-control"   # Fan control
+    cask "keka"               # Archive utility
+    cask "kekaexternalhelper" # Keka helper
+    cask "balenaetcher"       # USB image writer
+    ```
+  </Accordion>
+
+  <Accordion title="Communication">
+    ```ruby
+    cask "slack"              # Team messaging
+    cask "signal"             # Secure messaging
+    ```
+  </Accordion>
+
+  <Accordion title="Knowledge & Notes">
+    ```ruby
+    cask "obsidian"           # Note-taking
+    ```
+  </Accordion>
+
+  <Accordion title="Fonts">
+    ```ruby
+    cask "font-fira-code"
+    cask "font-fira-code-nerd-font"
+    cask "font-hack"
+    cask "font-monaspace"
+    cask "font-roboto"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Mac App Store Applications
+
+Apps installed via the `mas` command:
+
+```ruby
+mas "1Password for Safari", id: 1569813296
+mas "Discovery", id: 1381004916
+mas "Keynote", id: 409183694
+mas "Numbers", id: 409203825
+mas "Pages", id: 409201541
+mas "Refined GitHub", id: 1519867270
+mas "uBlock Origin Lite", id: 6745342698
+```
+
+<Note>
+Commented-out apps in the Brewfile are available but not installed by default. Uncomment them to include them in your setup.
+</Note>
+
+## Commented Applications
+
+These are available but disabled by default:
+
+```ruby
+# mas "Brother P-touch Editor", id: 1453365242
+# mas "Infuse", id: 1136220934
+# mas "MQTT Explorer", id: 1455214828
+# mas "Wake Up Time", id: 495945638
+# mas "WireGuard", id: 1451685025
+```
+
+## Python Tools (UV)
+
+Python packages that can be installed via `uv`:
+
+```ruby
+# uv "autopep8"
+# uv "flake8"
+# uv "poetry"
+# uv "pre-commit"
+# uv "pylint"
+# uv "universal-silabs-flasher"
+# uv "yamllint"
+# uv "yt-dlp"
+```
+
+<Warning>
+These UV packages are commented out by default. Install them manually using `uv tool install <package>` if needed.
+</Warning>
+
+## Usage
+
+### Installing Packages
+
+The Brewfile is automatically processed during bootstrap:
+
+```bash
+brew bundle install --file=~/.config/Brewfile
+```
+
+### Updating the Brewfile
+
+After installing new packages, update your Brewfile:
+
+```bash
+brew bundle dump --file=~/.config/Brewfile --force
+```
+
+### Checking Status
+
+Verify which packages are installed:
+
+```bash
+brew bundle check --file=~/.config/Brewfile
+```
+
+### Cleanup
+
+Remove packages not listed in the Brewfile:
+
+```bash
+brew bundle cleanup --file=~/.config/Brewfile
+```
+
+<Warning>
+Use `cleanup` with caution as it will remove packages not in your Brewfile.
+</Warning>
+
+## Customization
+
+### Adding New Packages
+
+1. Add the package to your Brewfile in the appropriate section
+2. Run `brew bundle install` to install new packages
+3. Commit the changes to version control
+
+### Removing Packages
+
+1. Remove or comment out the line in your Brewfile
+2. Run `brew uninstall <package>` manually
+3. Commit the changes
+
+### Custom Taps
+
+To add a custom tap:
+
+```ruby
+tap "username/repository"
+brew "username/repository/package"
+```
+
+<Tip>
+Keep your Brewfile organized by grouping related packages together and adding comments to explain custom or non-obvious installations.
+</Tip>
+
+## Best Practices
+
+1. **Version Control**: Always commit Brewfile changes to track your package history
+2. **Comments**: Document why specific packages are installed
+3. **Regular Updates**: Run `brew update && brew upgrade` regularly
+4. **Cleanup**: Periodically review and remove unused packages
+5. **Backup**: Your Brewfile serves as a backup of your development environment
+
+## Related
+
+- [Installation Guide](/getting-started/installation) - Initial setup instructions
+- [macOS Setup](/reference/macos) - macOS-specific configuration
+- [Troubleshooting](/reference/troubleshooting) - Common issues and solutions

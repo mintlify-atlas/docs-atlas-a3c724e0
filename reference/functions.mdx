@@ -1,0 +1,633 @@
+---
+title: Shell Functions
+description: Custom shell functions for enhanced productivity and automation
+---
+
+This page documents all custom shell functions defined in the dotfiles configuration. These functions provide powerful utilities for common tasks.
+
+## Shell Utilities
+
+<AccordionGroup>
+  <Accordion title="listCompletions">
+    Lists all available zsh completions in a formatted table.
+
+    **Usage:**
+    ```bash
+    listCompletions
+    ```
+
+    **Description:**  
+    Displays all registered command completions in zsh, showing which completion function handles each command.
+
+    **Implementation:**
+    ```bash
+    function listCompletions () {
+        for command completion in ${(kv)_comps:#-*(-|-,*)}
+        do
+            printf "%-32s %s\n" $command $completion
+        done | sort
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="extract">
+    Universal archive extraction function supporting multiple formats.
+
+    **Usage:**
+    ```bash
+    extract <archive-file>
+    ```
+
+    **Supported Formats:**
+    - `.tar.bz2` - Tar + Bzip2
+    - `.tar.gz` / `.tgz` - Tar + Gzip
+    - `.bz2` - Bzip2
+    - `.rar` - RAR archives
+    - `.gz` - Gzip
+    - `.tar` - Tar archives
+    - `.tbz2` - Tar + Bzip2
+    - `.zip` - ZIP archives
+    - `.Z` - Compress
+    - `.7z` - 7-Zip
+
+    **Example:**
+    ```bash
+    extract archive.tar.gz
+    extract file.zip
+    extract package.7z
+    ```
+
+    <Tip>
+    No need to remember extraction commands - just use `extract` for any archive format!
+    </Tip>
+
+    **Implementation:**
+    ```bash
+    function extract () {
+        if [ -f "$1" ] ; then
+            case $1 in
+                *.tar.bz2)   tar xjf "$1"     ;;
+                *.tar.gz)    tar xzf "$1"     ;;
+                *.bz2)       bunzip2 "$1"     ;;
+                *.rar)       unrar e "$1"     ;;
+                *.gz)        gunzip "$1"      ;;
+                *.tar)       tar xf "$1"      ;;
+                *.tbz2)      tar xjf "$1"     ;;
+                *.tgz)       tar xzf "$1"     ;;
+                *.zip)       unzip "$1"       ;;
+                *.Z)         uncompress "$1"  ;;
+                *.7z)        7z x "$1"        ;;
+                *)     echo "'$1' cannot be extracted via extract()" ;;
+            esac
+        else
+            echo "'$1' is not a valid file"
+        fi
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="ps">
+    Enhanced process listing that always shows full commands.
+
+    **Usage:**
+    ```bash
+    ps [options]
+    ```
+
+    **Description:**  
+    Wrapper around the system `ps` command that ensures full command output is displayed.
+
+    **Implementation:**
+    ```bash
+    function ps() {
+        echo "$(/bin/ps $@)"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="dc">
+    Intelligent Docker Compose wrapper.
+
+    **Usage:**
+    ```bash
+    dc [docker-compose-arguments]
+    ```
+
+    **Description:**  
+    Automatically detects and uses either `docker-compose` (standalone) or `docker compose` (plugin) depending on what's available on the system.
+
+    **Example:**
+    ```bash
+    dc up -d              # Start services
+    dc logs -f web        # Follow logs
+    dc down               # Stop services
+    ```
+
+    **Implementation:**
+    ```bash
+    function dc() {
+        if [ -x "$(command -v docker-compose)" ]; then
+            docker-compose $@
+        else
+            docker compose $@
+        fi
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## File & Directory Management
+
+<AccordionGroup>
+  <Accordion title="deleteCWD">
+    Safely delete the current working directory with confirmation.
+
+    **Usage:**
+    ```bash
+    deleteCWD
+    ```
+
+    **Description:**  
+    Prompts for confirmation before deleting the current directory. Useful for cleaning up temporary directories created with `mktemp -d`.
+
+    **Example:**
+    ```bash
+    cd $(mktemp -d)
+    # ... do some work ...
+    deleteCWD           # Prompts to delete the temp directory
+    ```
+
+    <Note>
+    You will be returned to your home directory before deletion occurs.
+    </Note>
+
+    **Implementation:**
+    ```bash
+    function deleteCWD() {
+        CWD=$(pwd)
+        if read -q "choice?[y/N] to delete $CWD: "; then
+            echo
+            cd $HOME
+            rm -rf $CWD
+        else
+            echo
+            echo "Cancelled."
+        fi
+        unset CWD
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="claim">
+    Take ownership of files or directories.
+
+    **Usage:**
+    ```bash
+    claim <directory|file> [additional-paths...]
+    ```
+
+    **Description:**  
+    Recursively changes ownership of the specified path(s) to the current user and group.
+
+    **Example:**
+    ```bash
+    claim /var/www/html       # Claim ownership of web directory
+    claim file1.txt dir/      # Claim multiple paths
+    ```
+
+    **Implementation:**
+    ```bash
+    function claim {
+        if [ -z "$1" ]; then
+            echo "Usage: claim <directory|file>"
+            return 1
+        fi
+        sudo chown -R $(id -u):$(id -g) $@
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Development Tools
+
+<AccordionGroup>
+  <Accordion title="pm">
+    Intelligent package manager wrapper for JavaScript projects.
+
+    **Usage:**
+    ```bash
+    pm [package-manager-command]
+    ```
+
+    **Description:**  
+    Automatically detects which package manager to use based on lock files present in the current directory:
+    - `bun.lockb` → uses `bun`
+    - `pnpm-lock.yaml` → uses `pnpm`
+    - `yarn.lock` → uses `yarn`
+    - `package-lock.json` → uses `npm`
+    - Default → uses `pnpm`
+
+    **Example:**
+    ```bash
+    pm install               # Uses appropriate package manager
+    pm add react             # Installs with detected package manager
+    pm run dev               # Runs scripts with detected package manager
+    ```
+
+    <Tip>
+    This function eliminates the need to remember which package manager each project uses!
+    </Tip>
+
+    **Implementation:**
+    ```bash
+    function pm {
+      if [[ -f bun.lockb ]]; then
+        command bun "$@"
+      elif [[ -f pnpm-lock.yaml ]]; then
+        command pnpm "$@"
+      elif [[ -f yarn.lock ]]; then
+        command yarn "$@"
+      elif [[ -f package-lock.json ]]; then
+        command npm "$@"
+      else
+        command pnpm "$@"
+      fi
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="jq">
+    Use yq with jq syntax for JSON processing.
+
+    **Usage:**
+    ```bash
+    jq [yq-options]
+    ```
+
+    **Description:**  
+    Wrapper that uses `yq` with JSON output format, allowing you to use jq-style syntax.
+
+    **Example:**
+    ```bash
+    cat data.json | jq '.items[0]'
+    ```
+
+    **Implementation:**
+    ```bash
+    function jq {
+        yq -oj "$@"
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Media & Utilities
+
+<AccordionGroup>
+  <Accordion title="mp4">
+    Convert video files to MP4 format.
+
+    **Usage:**
+    ```bash
+    mp4 <input-video-file>
+    ```
+
+    **Description:**  
+    Uses ffmpeg to convert any supported video format to MP4, preserving the original filename.
+
+    **Example:**
+    ```bash
+    mp4 video.avi        # Creates video.mp4
+    mp4 recording.mov    # Creates recording.mp4
+    ```
+
+    **Implementation:**
+    ```bash
+    function mp4() {
+        _fileName=$(basename "$1")
+        ffmpeg -i "$1" "${_fileName%.*}.mp4"
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="dadjoke">
+    Fetch a random dad joke to your terminal.
+
+    **Usage:**
+    ```bash
+    dadjoke
+    ```
+
+    **Description:**  
+    Fetches a random dad joke from icanhazdadjoke.com and displays it in plain text.
+
+    **Example:**
+    ```bash
+    $ dadjoke
+    Why don't scientists trust atoms? Because they make up everything!
+    ```
+
+    **Implementation:**
+    ```bash
+    function dadjoke() {
+        curl -w '\n' -H "Accept: text/plain" https://icanhazdadjoke.com/
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="pdf417">
+    Generate a PDF417 barcode as SVG.
+
+    **Usage:**
+    ```bash
+    pdf417 <data-to-encode>
+    ```
+
+    **Description:**  
+    Generates a PDF417 barcode from the provided data and copies the SVG to clipboard (macOS).
+
+    **Implementation:**
+    ```bash
+    function pdf417() {
+        curl "http://www.barcode-generator.org/zint/api.php?bc_number=55&bc_download=1&bc_format=1&bc_size=s&bc_data=$1" | pbcopy
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="tusDelete">
+    Delete a TUS upload.
+
+    **Usage:**
+    ```bash
+    tusDelete <tus-upload-url>
+    ```
+
+    **Description:**  
+    Sends a DELETE request to a TUS resumable upload endpoint.
+
+    **Example:**
+    ```bash
+    tusDelete https://example.com/uploads/abc123
+    ```
+
+    **Implementation:**
+    ```bash
+    function tusDelete() {
+        curl -X DELETE -H 'Tus-Resumable: 1.0.0' "$@"
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## System Administration
+
+<AccordionGroup>
+  <Accordion title="cleanupKernels">
+    Clean up old kernel versions on Fedora systems.
+
+    **Usage:**
+    ```bash
+    cleanupKernels
+    ```
+
+    **Description:**  
+    Fedora-specific function that removes old kernel versions while keeping:
+    - The currently running kernel
+    - The latest kernel (if different from current)
+
+    Prompts for confirmation before removing any kernels.
+
+    **Example:**
+    ```bash
+    $ cleanupKernels
+    Kernels to be removed:
+      - kernel-core-6.0.1-300.fc37.x86_64
+      - kernel-core-6.0.2-300.fc37.x86_64
+    Continue? [y/N]
+    ```
+
+    <Note>
+    This function only runs on Fedora systems and safely skips on other distributions.
+    </Note>
+
+    **Implementation:**
+    ```bash
+    function cleanupKernels () {
+        # Skip if not fedora
+        if ! grep -q fedora /etc/os-release; then
+            echo "Not a fedora system, skipping kernel cleanup"
+            return
+        fi
+        kernels=("${(@f)$(rpm -q kernel-core)}")
+        count=${#kernels[@]}
+
+        if (( count >= 2 )); then
+            current="kernel-core-$(uname -r)"
+            last=${kernels[-1]}
+
+            # If current is the latest, only keep current
+            # Otherwise keep both current and latest
+            if [[ "${current}" == "${last}" ]]; then
+                keep=("${current}")
+            else
+                keep=("${current}" "${last}")
+            fi
+
+            to_remove=()
+            for k in "${kernels[@]}"; do
+                [[ "${keep[@]}" =~ "${k}" ]] || to_remove+=("${k}")
+            done
+
+            # Only proceed if there are kernels to remove
+            if [[ ${#to_remove[@]} -gt 0 ]]; then
+                echo "Kernels to be removed:"
+                for kernel in "${to_remove[@]}"; do
+                    echo "  - $kernel"
+                done
+                echo "Continue? [y/N]"
+                read -q "choice?"
+                echo
+                if [[ ! $choice =~ ^[yY]$ ]]; then
+                    echo "Aborting kernel cleanup"
+                    return
+                fi
+                echo "Removing kernels: ${to_remove[@]}"
+                sudo dnf remove -y "${to_remove[@]}"
+            else
+                echo "No kernels to remove"
+            fi
+        else
+            echo "No extra kernels installed, nothing to do"
+        fi
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="merge_zsh_histories">
+    Merge multiple zsh history files.
+
+    **Usage:**
+    ```bash
+    merge_zsh_histories <history-file1> <history-file2> ...
+    ```
+
+    **Description:**  
+    Combines multiple zsh history files, removing duplicates and preserving multi-line commands.
+
+    **Example:**
+    ```bash
+    merge_zsh_histories ~/.zsh_history ~/.zsh_history.backup > merged_history
+    ```
+
+    **Implementation:**
+    ```bash
+    function merge_zsh_histories() {
+        set -x
+        cat $@ | awk -v date="WILL_NOT_APPEAR$(date +"%s")" '{if (sub(/\\$/,date)) printf "%s", $0; else print $0}' | LC_ALL=C sort -u | awk -v date="WILL_NOT_APPEAR$(date +"%s")" '{gsub('date',"\\\n"); print $0}'
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Source Code
+
+All functions are defined in `.config/zsh.d/S20_functions`:
+
+```bash
+#! /usr/bin/env zsh
+
+function listCompletions () {
+    for command completion in ${(kv)_comps:#-*(-|-,*)}
+    do
+        printf "%-32s %s\n" $command $completion
+    done | sort
+}
+
+function extract () {
+    if [ -f "$1" ] ; then
+        case $1 in
+            *.tar.bz2)   tar xjf "$1"     ;;
+            *.tar.gz)    tar xzf "$1"     ;;
+            *.bz2)       bunzip2 "$1"     ;;
+            *.rar)       unrar e "$1"     ;;
+            *.gz)        gunzip "$1"      ;;
+            *.tar)       tar xf "$1"      ;;
+            *.tbz2)      tar xjf "$1"     ;;
+            *.tgz)       tar xzf "$1"     ;;
+            *.zip)       unzip "$1"       ;;
+            *.Z)         uncompress "$1"  ;;
+            *.7z)        7z x "$1"        ;;
+            *)     echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+function dadjoke() {
+    curl -w '\n' -H "Accept: text/plain" https://icanhazdadjoke.com/
+}
+
+function mp4() {
+    _fileName=$(basename "$1")
+    ffmpeg -i "$1" "${_fileName%.*}.mp4"
+}
+
+function pdf417() {
+    curl "http://www.barcode-generator.org/zint/api.php?bc_number=55&bc_download=1&bc_format=1&bc_size=s&bc_data=$1" | pbcopy
+}
+
+function tusDelete() {
+    curl -X DELETE -H 'Tus-Resumable: 1.0.0' "$@"
+}
+
+function deleteCWD() {
+    CWD=$(pwd)
+    if read -q "choice?[y/N] to delete $CWD: "; then
+        echo
+        cd $HOME
+        rm -rf $CWD
+    else
+        echo
+        echo "Cancelled."
+    fi
+    unset CWD
+}
+
+function merge_zsh_histories() {
+    set -x
+    cat $@ | awk -v date="WILL_NOT_APPEAR$(date +"%s")" '{if (sub(/\\$/,date)) printf "%s", $0; else print $0}' | LC_ALL=C sort -u | awk -v date="WILL_NOT_APPEAR$(date +"%s")" '{gsub('date',"\\\n"); print $0}'
+}
+
+function jq {
+    yq -oj "$@"
+}
+
+function claim {
+    if [ -z "$1" ]; then
+        echo "Usage: claim <directory|file>"
+        return 1
+    fi
+    sudo chown -R $(id -u):$(id -g) $@
+}
+
+function pm {
+  if [[ -f bun.lockb ]]; then
+    command bun "$@"
+  elif [[ -f pnpm-lock.yaml ]]; then
+    command pnpm "$@"
+  elif [[ -f yarn.lock ]]; then
+    command yarn "$@"
+  elif [[ -f package-lock.json ]]; then
+    command npm "$@"
+  else
+    command pnpm "$@"
+  fi
+}
+
+function cleanupKernels () {
+    # Skip if not fedora
+    if ! grep -q fedora /etc/os-release; then
+        echo "Not a fedora system, skipping kernel cleanup"
+        return
+    fi
+    kernels=("${(@f)$(rpm -q kernel-core)}")
+    count=${#kernels[@]}
+
+    if (( count >= 2 )); then
+        current="kernel-core-$(uname -r)"
+        last=${kernels[-1]}
+
+        if [[ "${current}" == "${last}" ]]; then
+            keep=("${current}")
+        else
+            keep=("${current}" "${last}")
+        fi
+
+        to_remove=()
+        for k in "${kernels[@]}"; do
+            [[ "${keep[@]}" =~ "${k}" ]] || to_remove+=("${k}")
+        done
+
+        if [[ ${#to_remove[@]} -gt 0 ]]; then
+            echo "Kernels to be removed:"
+            for kernel in "${to_remove[@]}"; do
+                echo "  - $kernel"
+            done
+            echo "Continue? [y/N]"
+            read -q "choice?"
+            echo
+            if [[ ! $choice =~ ^[yY]$ ]]; then
+                echo "Aborting kernel cleanup"
+                return
+            fi
+            echo "Removing kernels: ${to_remove[@]}"
+            sudo dnf remove -y "${to_remove[@]}"
+        else
+            echo "No kernels to remove"
+        fi
+    else
+        echo "No extra kernels installed, nothing to do"
+    fi
+}
+```

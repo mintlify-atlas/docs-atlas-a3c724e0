@@ -1,0 +1,349 @@
+---
+title: Shell Configuration
+description: Zsh configuration with Oh My Zsh, Powerlevel10k theme, and custom plugins
+---
+
+## Overview
+
+The shell configuration uses **Zsh** as the primary shell with **Oh My Zsh** framework and **Powerlevel10k** theme for an enhanced command-line experience. Configuration is modular, split across multiple files for maintainability.
+
+## Configuration Files
+
+<Tabs>
+  <Tab title=".zshrc">
+    The main Zsh configuration file that loads plugins, themes, and custom snippets.
+
+    ```bash .zshrc
+    # Enable Powerlevel10k instant prompt
+    if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+      source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+    fi
+
+    # Theme configuration
+    ZSH_THEME="powerlevel10k/powerlevel10k"
+    HIST_STAMPS="dd.mm.yyyy"
+
+    # Load custom configuration snippets
+    for zshrc_snipplet in $XDG_CONFIG_HOME/zsh.d/S[0-9][0-9]*[^~] ; do
+        source "${zshrc_snipplet}"
+    done
+    ```
+
+    <Note>
+    The `.zshrc` file loads configuration snippets from `~/.config/zsh.d/` in numerical order, allowing for organized modular configuration.
+    </Note>
+  </Tab>
+
+  <Tab title=".zshenv">
+    Environment variables loaded before `.zshrc`. Sets up XDG base directories and application homes.
+
+    ```bash .zshenv
+    export ZSH=${HOME}/.oh-my-zsh
+    export XDG_CONFIG_HOME=${HOME}/.config
+    export HISTFILE=${HOME}/.zsh_history
+    export HOMEBREW_BUNDLE_FILE=${XDG_CONFIG_HOME}/Brewfile
+    export FPATH=${XDG_CONFIG_HOME}/completions/zsh:${FPATH}
+    export ANSIBLE_HOME=${XDG_CONFIG_HOME}/ansible
+    export ANSIBLE_CONFIG=${ANSIBLE_HOME}/ansible.cfg
+    export PULUMI_HOME=${XDG_CONFIG_HOME}/pulumi
+    ```
+  </Tab>
+
+  <Tab title="zsh.d/S03_variables">
+    Core shell variables for locale, history, and editor preferences.
+
+    ```bash S03_variables
+    # Locale settings
+    export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
+    export LANGUAGE=en_US.UTF-8
+    export GPG_TTY=$(tty)
+
+    # History configuration
+    export HISTFILESIZE=1000000000
+    export HISTSIZE=1000000000
+    export SAVEHIST=1000000000
+
+    # Editor preferences
+    export EDITOR='vim'
+    export GIT_EDITOR='vim'
+    ```
+
+    <Info>
+    History is configured to store up to 1 billion entries, ensuring commands are never lost.
+    </Info>
+  </Tab>
+</Tabs>
+
+## Zsh Options
+
+Custom shell options configured in `S01_options`:
+
+```bash S01_options
+# Remove command lines from history when first character is a space
+setopt histignorespace
+
+# Don't enter duplicate commands into history
+setopt histignorealldups
+
+# Immediately append to history file
+setopt INC_APPEND_HISTORY
+
+# Remove superfluous blanks before recording entry
+setopt HIST_REDUCE_BLANKS
+```
+
+<Tip>
+Use a leading space before commands you don't want saved to history, like commands with passwords or tokens.
+</Tip>
+
+## Oh My Zsh Plugins
+
+The configuration uses a comprehensive set of Oh My Zsh plugins:
+
+<CodeGroup>
+```bash Core Plugins
+plugins=(
+  aliases              # List all aliases with 'acs'
+  colored-man-pages    # Colorized man pages
+  sudo                 # Prefix last command with sudo using Esc+Esc
+)
+```
+
+```bash Development Tools
+plugins=(
+  gh                   # GitHub CLI completions
+  git                  # Git aliases and completions
+  gitignore            # gitignore.io integration
+  docker               # Docker completions
+  docker-compose       # Docker Compose completions
+  helm                 # Helm completions
+  kubectl              # Kubernetes completions
+  kubectx              # kubectx/kubens completions
+)
+```
+
+```bash Language Support
+plugins=(
+  pip                  # Python pip completions
+  poetry               # Poetry completions
+  yarn                 # Yarn completions
+)
+```
+
+```bash Enhanced Functionality
+plugins=(
+  zsh-autosuggestions    # Fish-like autosuggestions
+  zsh-completions        # Additional completions
+  zsh-syntax-highlighting # Syntax highlighting
+)
+```
+</CodeGroup>
+
+<Warning>
+The `zsh-autosuggestions`, `zsh-completions`, and `zsh-syntax-highlighting` plugins must be installed separately in `~/.oh-my-zsh/custom/plugins/`.
+</Warning>
+
+## Modern CLI Tool Replacements
+
+The configuration replaces traditional Unix tools with modern alternatives:
+
+### eza (ls replacement)
+
+```bash
+if [ -x "$(command -v eza)" ] && [ -z "${_DISABLE_EZA}" ]; then
+  alias ls="eza"
+  alias l="eza --long --group --git --header --mounts"
+  alias la="eza --long --group --git --header --mounts --all"
+  alias laz="eza --long --group --git --header --mounts --all --context"
+  alias lao="eza --long --group --git --header --mounts --all --octal-permissions"
+fi
+```
+
+### bat (cat replacement)
+
+```bash
+if [ -x "$(command -v bat)" ]; then
+  alias cat="bat"
+elif [ -x "$(command -v batcat)" ]; then
+  alias cat="batcat"
+fi
+```
+
+### duf (df replacement)
+
+```bash
+if [ -x "$(command -v duf)" ] && [ -z "${_DISABLE_DUF}" ]; then
+  alias df="duf"
+fi
+```
+
+<Info>
+All replacements can be disabled by setting environment variables like `_DISABLE_EZA=1`.
+</Info>
+
+## Custom Aliases
+
+### File System Navigation
+
+```bash S10_aliases
+alias cd..='cd ../'
+alias ..='cd ../'
+alias ...='cd ../../'
+alias path='echo -e ${PATH//:/\\n}'
+alias fpath='echo -e ${FPATH//:/\\n}'
+```
+
+### Git Shortcuts
+
+```bash S10_aliases
+alias s='git status'
+alias add='git add'
+alias commit='git commit'
+```
+
+### Networking
+
+```bash S10_aliases
+alias myip='curl -4 icanhazip.com; curl -6 icanhazip.com'
+alias ips="ip a s | grep 'inet ' | awk '{print \$2}' | cut -f1 -d'/' | sort"
+alias ip4="ip -4"
+alias ip6="ip -6"
+```
+
+### Docker
+
+```bash S10_aliases
+alias dk='docker kill $(docker ps -q)'
+
+function dc() {
+  if [ -x "$(command -v docker-compose)" ]; then
+    docker-compose $@
+  else
+    docker compose $@
+  fi
+}
+```
+
+### Kubernetes
+
+```bash S10_aliases
+alias kctx='kubectx'
+alias kns='kubens'
+```
+
+## Custom Functions
+
+### Package Manager Wrapper
+
+Automatically detects and uses the appropriate Node.js package manager:
+
+```bash S20_functions
+function pm {
+  if [[ -f bun.lockb ]]; then
+    command bun "$@"
+  elif [[ -f pnpm-lock.yaml ]]; then
+    command pnpm "$@"
+  elif [[ -f yarn.lock ]]; then
+    command yarn "$@"
+  elif [[ -f package-lock.json ]]; then
+    command npm "$@"
+  else
+    command pnpm "$@"
+  fi
+}
+```
+
+### Extract Archives
+
+Universal archive extraction function:
+
+```bash S20_functions
+function extract () {
+  if [ -f "$1" ] ; then
+    case $1 in
+      *.tar.bz2)   tar xjf "$1"     ;;
+      *.tar.gz)    tar xzf "$1"     ;;
+      *.bz2)       bunzip2 "$1"     ;;
+      *.rar)       unrar e "$1"     ;;
+      *.gz)        gunzip "$1"      ;;
+      *.tar)       tar xf "$1"      ;;
+      *.zip)       unzip "$1"       ;;
+      *.7z)        7z x "$1"        ;;
+      *)     echo "'$1' cannot be extracted" ;;
+    esac
+  fi
+}
+```
+
+### Claim Ownership
+
+Recursively change ownership of files to current user:
+
+```bash S20_functions
+function claim {
+  if [ -z "$1" ]; then
+    echo "Usage: claim <directory|file>"
+    return 1
+  fi
+  sudo chown -R $(id -u):$(id -g) $@
+}
+```
+
+## Autocompletions
+
+Custom completions are loaded from `~/.config/completions/zsh/` and added to the function path:
+
+```bash .zshenv
+export FPATH=${XDG_CONFIG_HOME}/completions/zsh:${FPATH}
+```
+
+```bash .zshrc
+autoload -Uz compinit && compinit -u
+autoload -U bashcompinit && bashcompinit
+```
+
+Available completions include: `atuin`, `npm`, `pnpm`, `step`, `talosctl`, and more.
+
+## History Sync with Atuin
+
+Optional integration with [Atuin](https://atuin.sh) for shell history sync:
+
+```bash .zshrc
+if [ -x "$(command -v atuin)" ] && [ -z "${_DISABLE_ATUIN}" ]; then
+  eval "$(atuin init zsh --disable-up-arrow)"
+fi
+```
+
+<Note>
+Atuin can be disabled by setting `_DISABLE_ATUIN=1`.
+</Note>
+
+## Powerlevel10k Theme
+
+The Powerlevel10k theme is configured separately:
+
+```bash .zshrc
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# Load theme configuration
+[[ ! -f "${XDG_CONFIG_HOME}/p10k.zsh" ]] || source "${XDG_CONFIG_HOME}"/p10k.zsh
+```
+
+Run `p10k configure` to customize the prompt appearance.
+
+## Local Overrides
+
+Both `.zshrc` and `.zshenv` support local machine-specific overrides:
+
+```bash
+# In .zshenv
+[ -f ~/.zshenv.local ] && source ~/.zshenv.local
+
+# In .zshrc
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+```
+
+<Tip>
+Use `.zshenv.local` and `.zshrc.local` for machine-specific configuration that shouldn't be committed to version control.
+</Tip>
